@@ -1,0 +1,519 @@
+{
+  "info": {
+    "_postman_id": "9f0d6fca-9b96-4e9f-86ad-e8859ce14e58",
+    "name": "FOMI API",
+    "description": "Postman collection untuk semua endpoint API pada routes/api.php",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000/api" },
+    { "key": "token", "value": "" },
+    { "key": "admin_token", "value": "" },
+    { "key": "product_id", "value": "1" },
+    { "key": "asset_id", "value": "1" },
+    { "key": "order_id", "value": "1" },
+    { "key": "barcode_code", "value": "FOMI-MERCH-001" },
+    { "key": "qr_code", "value": "sample-qr-code" },
+    { "key": "session_id", "value": "finder-session-123" }
+  ],
+  "item": [
+    {
+      "name": "Public",
+      "item": [
+        {
+          "name": "POST Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Budi\",\n  \"email\": \"budi@example.com\",\n  \"phone\": \"08123456789\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\"\n}"
+            },
+            "url": "{{base_url}}/register",
+            "description": "Mendaftarkan user baru."
+          }
+        },
+        {
+          "name": "POST Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"budi@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": "{{base_url}}/login",
+            "description": "Login user, token disimpan ke variable token/admin_token manual."
+          }
+        },
+        {
+          "name": "GET Products",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/products"
+          }
+        },
+        {
+          "name": "GET Product Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/products/{{product_id}}"
+          }
+        },
+        {
+          "name": "GET Scan QR",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/scan/{{qr_code}}?latitude=-6.2&longitude=106.8&location_name=Jakarta",
+              "host": ["{{base_url}}"],
+              "path": ["scan", "{{qr_code}}"],
+              "query": [
+                { "key": "latitude", "value": "-6.2" },
+                { "key": "longitude", "value": "106.8" },
+                { "key": "location_name", "value": "Jakarta" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST Scan Chat",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"session_id\": \"{{session_id}}\",\n  \"message\": \"Halo, barang ini saya temukan.\"\n}"
+            },
+            "url": "{{base_url}}/scan/{{qr_code}}/chat"
+          }
+        },
+        {
+          "name": "GET Scan Chats",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/scan/{{qr_code}}/chats/{{session_id}}"
+          }
+        },
+        {
+          "name": "GET FAQs",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/faqs"
+          }
+        },
+        {
+          "name": "POST Contact Us",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Budi\",\n  \"email\": \"budi@example.com\",\n  \"subject\": \"Bantuan QR\",\n  \"message\": \"Saya ingin bertanya.\"\n}"
+            },
+            "url": "{{base_url}}/contact-us"
+          }
+        },
+        {
+          "name": "POST Midtrans Webhook",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"MIDTRANS-ORDER-ID\",\n  \"transaction_status\": \"settlement\",\n  \"status_code\": \"200\",\n  \"gross_amount\": \"100000.00\",\n  \"signature_key\": \"<signature>\"\n}"
+            },
+            "url": "{{base_url}}/midtrans/webhook",
+            "description": "Dipanggil oleh Midtrans, bukan oleh frontend/user biasa."
+          }
+        },
+        {
+          "name": "POST Midtrans Check Status",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"{{order_id}}\"\n}"
+            },
+            "url": "{{base_url}}/midtrans/check-status"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Authenticated User",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          { "key": "token", "value": "{{token}}", "type": "string" }
+        ]
+      },
+      "item": [
+        {
+          "name": "POST Logout",
+          "request": { "method": "POST", "header": [{ "key": "Accept", "value": "application/json" }], "url": "{{base_url}}/logout" }
+        },
+        {
+          "name": "GET Me",
+          "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": "{{base_url}}/me" }
+        },
+        {
+          "name": "GET Profile",
+          "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": "{{base_url}}/profile" }
+        },
+        {
+          "name": "PUT Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Budi Santoso\",\n  \"phone\": \"08123456789\"\n}" },
+            "url": "{{base_url}}/profile"
+          }
+        },
+        {
+          "name": "GET Assets",
+          "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": "{{base_url}}/assets" }
+        },
+        {
+          "name": "POST Assets (form-data)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "name", "value": "Tas Kerja", "type": "text" },
+                { "key": "description", "value": "Tas laptop hitam", "type": "text" },
+                { "key": "contact_info[phone]", "value": "08123456789", "type": "text" },
+                { "key": "contact_info[email]", "value": "budi@example.com", "type": "text" },
+                { "key": "contact_info[address]", "value": "Jakarta", "type": "text" },
+                { "key": "image", "type": "file", "src": "" }
+              ]
+            },
+            "url": "{{base_url}}/assets"
+          }
+        },
+        {
+          "name": "GET Asset Detail",
+          "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": "{{base_url}}/assets/{{asset_id}}" }
+        },
+        {
+          "name": "PUT Asset",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Tas Kerja Baru\",\n  \"description\": \"Tas laptop hitam ukuran 15 inci\",\n  \"contact_info\": {\n    \"phone\": \"08123456789\",\n    \"email\": \"budi@example.com\",\n    \"address\": \"Jakarta\"\n  }\n}" },
+            "url": "{{base_url}}/assets/{{asset_id}}"
+          }
+        },
+        {
+          "name": "PATCH Asset Toggle Status",
+          "request": { "method": "PATCH", "header": [{ "key": "Accept", "value": "application/json" }], "url": "{{base_url}}/assets/{{asset_id}}/toggle-status" }
+        },
+        {
+          "name": "GET Asset Scan Logs",
+          "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": "{{base_url}}/assets/{{asset_id}}/scan-logs" }
+        },
+        {
+          "name": "GET Asset Chats",
+          "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": "{{base_url}}/assets/{{asset_id}}/chats" }
+        },
+        {
+          "name": "POST Asset Chat Reply",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"session_id\": \"{{session_id}}\",\n  \"message\": \"Terima kasih, saya akan ambil hari ini.\"\n}" },
+            "url": "{{base_url}}/assets/{{asset_id}}/chats"
+          }
+        },
+        {
+          "name": "POST Orders Checkout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"items\": [\n    {\n      \"product_id\": 1,\n      \"quantity\": 1\n    }\n  ]\n}" },
+            "url": "{{base_url}}/orders/checkout"
+          }
+        },
+        {
+          "name": "GET Orders",
+          "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": "{{base_url}}/orders" }
+        },
+        {
+          "name": "GET Order Detail",
+          "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": "{{base_url}}/orders/{{order_id}}" }
+        },
+        {
+          "name": "POST Merchandise Scan Verify",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"barcode_code\": \"{{barcode_code}}\",\n  \"activation_data\": {\n    \"nickname\": \"Koper Abu\",\n    \"notes\": \"Dipasang di handle koper\",\n    \"color\": \"abu-abu\"\n  }\n}" },
+            "url": "{{base_url}}/merchandise/scan/verify"
+          }
+        },
+        {
+          "name": "POST Merchandise Activate",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"barcode_code\": \"{{barcode_code}}\",\n  \"activation_data\": {\n    \"nickname\": \"Koper Abu\",\n    \"notes\": \"Dipasang di handle koper\",\n    \"color\": \"abu-abu\"\n  }\n}" },
+            "url": "{{base_url}}/merchandise/activate"
+          }
+        },
+        {
+          "name": "GET Merchandise My Items",
+          "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": "{{base_url}}/merchandise/my-items" }
+        },
+        {
+          "name": "GET User Dashboard",
+          "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": "{{base_url}}/user/dashboard" }
+        },
+        {
+          "name": "GET Renewal Packages",
+          "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": "{{base_url}}/user/renewal/packages" }
+        },
+        {
+          "name": "POST Renewal Checkout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"product_id\": 7,\n  \"quantity\": 1,\n  \"renewal_asset_id\": {{asset_id}},\n  \"customer_name\": \"Budi\",\n  \"customer_email\": \"budi@example.com\",\n  \"customer_phone\": \"08123456789\"\n}" },
+            "url": "{{base_url}}/user/renewal/checkout"
+          }
+        },
+        {
+          "name": "GET User QRCodes",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/user/qrcodes?per_page=12",
+              "host": ["{{base_url}}"],
+              "path": ["user", "qrcodes"],
+              "query": [{ "key": "per_page", "value": "12" }]
+            }
+          }
+        },
+        {
+          "name": "PUT User QRCode Asset",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Tas Kerja\",\n  \"description\": \"Tas laptop hitam\",\n  \"contact_name\": \"Budi\",\n  \"contact_phone\": \"08123456789\",\n  \"contact_email\": \"budi@example.com\",\n  \"contact_address\": \"Jakarta\",\n  \"contact_note\": \"Hubungi via WhatsApp\"\n}" },
+            "url": "{{base_url}}/user/qrcodes/{{asset_id}}"
+          }
+        },
+        {
+          "name": "PATCH User QRCode Toggle Lost",
+          "request": { "method": "PATCH", "header": [{ "key": "Accept", "value": "application/json" }], "url": "{{base_url}}/user/qrcodes/{{asset_id}}/toggle-lost" }
+        },
+        {
+          "name": "GET User Orders",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/user/orders?per_page=10",
+              "host": ["{{base_url}}"],
+              "path": ["user", "orders"],
+              "query": [{ "key": "per_page", "value": "10" }]
+            }
+          }
+        },
+        {
+          "name": "GET User Order Detail",
+          "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": "{{base_url}}/user/orders/{{order_id}}" }
+        },
+        {
+          "name": "GET User Profile",
+          "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": "{{base_url}}/user/profile" }
+        },
+        {
+          "name": "PUT User Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Budi Santoso\",\n  \"email\": \"budi@example.com\",\n  \"phone\": \"08123456789\",\n  \"address\": \"Jakarta\"\n}" },
+            "url": "{{base_url}}/user/profile"
+          }
+        },
+        {
+          "name": "PUT User Profile Password",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"current_password\": \"password123\",\n  \"password\": \"passwordBaru123\",\n  \"password_confirmation\": \"passwordBaru123\"\n}" },
+            "url": "{{base_url}}/user/profile/password"
+          }
+        },
+        {
+          "name": "PUT User Profile Privacy",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"privacy\": [\"name\", \"phone\", \"email\"]\n}" },
+            "url": "{{base_url}}/user/profile/privacy"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          { "key": "token", "value": "{{admin_token}}", "type": "string" }
+        ]
+      },
+      "item": [
+        {
+          "name": "GET Admin Products",
+          "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": "{{base_url}}/admin/products" }
+        },
+        {
+          "name": "POST Admin Product (form-data)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "name", "value": "Produk Baru", "type": "text" },
+                { "key": "description", "value": "Deskripsi produk", "type": "text" },
+                { "key": "price", "value": "50000", "type": "text" },
+                { "key": "stock", "value": "100", "type": "text" },
+                { "key": "type", "value": "physical", "type": "text" },
+                { "key": "duration_days", "value": "30", "type": "text" },
+                { "key": "is_active", "value": "1", "type": "text" },
+                { "key": "image", "type": "file", "src": "" }
+              ]
+            },
+            "url": "{{base_url}}/admin/products"
+          }
+        },
+        {
+          "name": "GET Admin Product Detail",
+          "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": "{{base_url}}/admin/products/{{product_id}}" }
+        },
+        {
+          "name": "PUT Admin Product",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "name", "value": "Produk Updated", "type": "text" },
+                { "key": "description", "value": "Deskripsi update", "type": "text" },
+                { "key": "price", "value": "75000", "type": "text" },
+                { "key": "stock", "value": "80", "type": "text" },
+                { "key": "type", "value": "physical", "type": "text" },
+                { "key": "duration_days", "value": "30", "type": "text" },
+                { "key": "is_active", "value": "1", "type": "text" },
+                { "key": "image", "type": "file", "src": "" }
+              ]
+            },
+            "url": "{{base_url}}/admin/products/{{product_id}}"
+          }
+        },
+        {
+          "name": "DELETE Admin Product",
+          "request": { "method": "DELETE", "header": [{ "key": "Accept", "value": "application/json" }], "url": "{{base_url}}/admin/products/{{product_id}}" }
+        },
+        {
+          "name": "GET Admin All Orders",
+          "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": "{{base_url}}/admin/orders" }
+        },
+        {
+          "name": "GET Admin Pending Orders",
+          "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": "{{base_url}}/admin/orders/pending" }
+        },
+        {
+          "name": "PUT Admin Update Shipping",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"tracking_number\": \"RESI-12345\",\n  \"courier\": \"JNE\",\n  \"notes\": \"Dikirim sore ini\"\n}" },
+            "url": "{{base_url}}/admin/orders/{{order_id}}/shipping"
+          }
+        },
+        {
+          "name": "PATCH Admin Mark Delivered",
+          "request": { "method": "PATCH", "header": [{ "key": "Accept", "value": "application/json" }], "url": "{{base_url}}/admin/orders/{{order_id}}/delivered" }
+        }
+      ]
+    }
+  ]
+}

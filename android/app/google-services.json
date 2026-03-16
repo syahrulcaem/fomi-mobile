@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "835669717116",
+    "project_id": "fomi-32af1",
+    "storage_bucket": "fomi-32af1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:835669717116:android:d6b1d4d944dc21321699f9",
+        "android_client_info": {
+          "package_name": "com.fomi"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "835669717116-tpa34edqk8j5nlhm62j8n6bgdf5r0lqm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.fomi",
+            "certificate_hash": "18a2ee28712eac8948fcc98e058fd7f91fb7bc5d"
+          }
+        },
+        {
+          "client_id": "835669717116-vfhsfcvcqsuutgjvu6lsr69836vd0p4v.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDemLyOPCm0WCewPmok7kRk5s1UMWTOAww"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "835669717116-vfhsfcvcqsuutgjvu6lsr69836vd0p4v.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,189 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../services/qrcode_service.dart';
+
+class EditQrCodeScreen extends StatefulWidget {
+  const EditQrCodeScreen({super.key, required this.assetId});
+
+  final String assetId;
+
+  @override
+  State<EditQrCodeScreen> createState() => _EditQrCodeScreenState();
+}
+
+class _EditQrCodeScreenState extends State<EditQrCodeScreen> {
+  final _nameController = TextEditingController();
+  final _descController = TextEditingController();
+  final _contactNameController = TextEditingController();
+  final _contactPhoneController = TextEditingController();
+  final _contactEmailController = TextEditingController();
+  bool _loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _prefill();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _descController.dispose();
+    _contactNameController.dispose();
+    _contactPhoneController.dispose();
+    _contactEmailController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _prefill() async {
+    setState(() => _loading = true);
+    try {
+      final service = context.read<QrCodeService>();
+      final detail = await service.getQrCodeDetail(widget.assetId);
+      if (!mounted || detail == null) {
+        return;
+      }
+      _nameController.text = detail.name;
+      _descController.text = detail.description ?? '';
+      _contactNameController.text =
+          detail.contactInfo?['name']?.toString() ?? '';
+      _contactPhoneController.text =
+          detail.contactInfo?['phone']?.toString() ?? '';
+      _contactEmailController.text =
+          detail.contactInfo?['email']?.toString() ?? '';
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+    }
+  }
+
+  Future<void> _save() async {
+    final name = _nameController.text.trim();
+    if (name.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Nama wajib diisi.')),
+      );
+      return;
+    }
+
+    setState(() => _loading = true);
+    try {
+      final service = context.read<QrCodeService>();
+      await service.updateQrCode(
+        assetId: widget.assetId,
+        name: name,
+        description: _descController.text.trim(),
+        contactName: _contactNameController.text.trim(),
+        contactPhone: _contactPhoneController.text.trim(),
+        contactEmail: _contactEmailController.text.trim(),
+      );
+      if (!mounted) {
+        return;
+      }
+      Navigator.of(context).pop();
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Gagal menyimpan data QR.')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Edit Data QR ✏️')),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  side: BorderSide(color: Colors.blue.shade200, width: 2),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      const Icon(Icons.edit_note, size: 80, color: Colors.blue),
+                      const SizedBox(height: 24),
+                      TextField(
+                        controller: _nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Nama Barang',
+                          prefixIcon: Icon(Icons.inventory_2_outlined),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _descController,
+                        decoration: const InputDecoration(
+                          labelText: 'Deskripsi Tambahan',
+                          prefixIcon: Icon(Icons.description_outlined),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      const Divider(thickness: 1.5),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Data Pemilik Asli',
+                        style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.orange.shade800),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _contactNameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Nama Kontak',
+                          prefixIcon: Icon(Icons.person_outline),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _contactPhoneController,
+                        decoration: const InputDecoration(
+                          labelText: 'Nomor Telepon',
+                          prefixIcon: Icon(Icons.phone_outlined),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _contactEmailController,
+                        decoration: const InputDecoration(
+                          labelText: 'Alamat Email',
+                          prefixIcon: Icon(Icons.email_outlined),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: _loading ? null : _save,
+                          icon: const Icon(Icons.save_rounded),
+                          label: Text(
+                              _loading ? 'Menyimpan...' : 'Simpan Perubahan'),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+            ),
+    );
+  }
+}
