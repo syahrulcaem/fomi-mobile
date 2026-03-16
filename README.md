@@ -50,11 +50,11 @@ Flutter mobile app untuk user panel FOMI dengan cakupan fitur auth, dashboard, Q
 2. Jalankan flutter doctor dan pastikan Android toolchain siap.
 3. Install dependency:
 
-	flutter pub get
+   flutter pub get
 
 4. Set base URL API lewat dart-define saat run:
 
-	flutter run --dart-define=API_BASE_URL=https://your-domain/api
+   flutter run --dart-define=API_BASE_URL=https://your-domain/api
 
 Jika dart-define tidak diberikan, default base URL adalah https://fomi.syahrulcaem.my.id/api.
 
@@ -63,7 +63,7 @@ Jika dart-define tidak diberikan, default base URL adalah https://fomi.syahrulca
 1. Pastikan emulator Android aktif atau device terhubung.
 2. Jalankan:
 
-	flutter run --dart-define=API_BASE_URL=https://your-domain/api
+   flutter run --dart-define=API_BASE_URL=https://your-domain/api
 
 ## Build APK Debug
 

@@ -21,10 +21,8 @@ class PaginatedResponse<T> {
   ) {
     final rawItems = json['data'] is List ? json['data'] as List : <dynamic>[];
     return PaginatedResponse<T>(
-      items: rawItems
-          .whereType<Map<String, dynamic>>()
-          .map(itemBuilder)
-          .toList(),
+      items:
+          rawItems.whereType<Map<String, dynamic>>().map(itemBuilder).toList(),
       currentPage: (json['current_page'] as num?)?.toInt() ?? 1,
       lastPage: (json['last_page'] as num?)?.toInt() ?? 1,
       perPage: (json['per_page'] as num?)?.toInt() ?? rawItems.length,
@@ -48,7 +46,8 @@ class PaginatedResponse<T> {
     }
 
     if (data is List) {
-      final items = data.whereType<Map<String, dynamic>>().map(itemBuilder).toList();
+      final items =
+          data.whereType<Map<String, dynamic>>().map(itemBuilder).toList();
       return PaginatedResponse<T>(
         items: items,
         currentPage: 1,

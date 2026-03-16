@@ -211,7 +211,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         onPressed: _saveProfile,
                         icon: const Icon(Icons.save),
                         label: const Text('Simpan Profil'),
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue),
                       ),
                     ),
                   ],
@@ -246,7 +247,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         onPressed: _savePassword,
                         icon: const Icon(Icons.lock_reset),
                         label: const Text('Perbarui Sandi'),
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange),
                       ),
                     ),
                   ],
@@ -273,7 +275,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const Divider(),
                     SwitchListTile(
                       value: _allowFinderContact,
-                      onChanged: (value) => setState(() => _allowFinderContact = value),
+                      onChanged: (value) =>
+                          setState(() => _allowFinderContact = value),
                       title: const Text('Boleh Dihubungi Penemu Barang'),
                       activeColor: Colors.green,
                     ),
@@ -284,7 +287,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         onPressed: _savePrivacy,
                         icon: const Icon(Icons.shield),
                         label: const Text('Simpan Privasi'),
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green),
                       ),
                     ),
                   ],
@@ -299,11 +303,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     context.go('/login');
                   },
                   icon: const Icon(Icons.exit_to_app, color: Colors.red),
-                  label: const Text('Keluar Akun', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                  label: const Text('Keluar Akun',
+                      style: TextStyle(
+                          color: Colors.red, fontWeight: FontWeight.bold)),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.all(16),
                     side: const BorderSide(color: Colors.red, width: 2),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24)),
                   ),
                 ),
                 const SizedBox(height: 24),

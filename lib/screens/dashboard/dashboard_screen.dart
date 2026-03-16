@@ -125,38 +125,44 @@ class _DashboardScreenState extends State<DashboardScreen> {
               onPressed: () => context.push('/qrcodes'),
               icon: const Icon(Icons.qr_code_2, size: 28),
               label: const Text('QR Code Milikku'),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.blue.shade600),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue.shade600),
             ),
             const SizedBox(height: 12),
             ElevatedButton.icon(
               onPressed: () => context.push('/orders'),
               icon: const Icon(Icons.receipt_long, size: 28),
               label: const Text('Lihat Pesananku'),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.orange.shade500),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange.shade500),
             ),
             const SizedBox(height: 12),
             ElevatedButton.icon(
               onPressed: () => context.push('/renewal'),
               icon: const Icon(Icons.stars, size: 28),
               label: const Text('Langganan & Bayar'),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.green.shade500),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green.shade500),
             ),
             const SizedBox(height: 12),
             ElevatedButton.icon(
               onPressed: () => context.push('/merchandise'),
               icon: const Icon(Icons.shopping_bag, size: 28),
               label: const Text('Toko FOMI'),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.purple.shade400),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.purple.shade400),
             ),
             const SizedBox(height: 24),
             _SectionCard(
               title: 'Barang Terbaru 📦',
-              items: _dashboard?.recentAssets.map((e) => e.name).toList() ?? const [],
+              items: _dashboard?.recentAssets.map((e) => e.name).toList() ??
+                  const [],
               color: Colors.blue,
             ),
             _SectionCard(
               title: 'Barang Kadaluarsa ⚠️',
-              items: _dashboard?.expiredAssets.map((e) => e.name).toList() ?? const [],
+              items: _dashboard?.expiredAssets.map((e) => e.name).toList() ??
+                  const [],
               color: Colors.red,
             ),
             _SectionCard(
@@ -233,7 +239,8 @@ class _StatCard extends StatelessWidget {
 }
 
 class _SectionCard extends StatelessWidget {
-  const _SectionCard({required this.title, required this.items, required this.color});
+  const _SectionCard(
+      {required this.title, required this.items, required this.color});
 
   final String title;
   final List<String> items;
@@ -268,13 +275,15 @@ class _SectionCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             if (items.isEmpty)
-              const Text('Wah, masih kosong nih! 🎈', style: TextStyle(fontStyle: FontStyle.italic))
+              const Text('Wah, masih kosong nih! 🎈',
+                  style: TextStyle(fontStyle: FontStyle.italic))
             else
               ...items.map((item) => Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Row(
                       children: [
-                        Icon(Icons.star, size: 16, color: Colors.orange.shade300),
+                        Icon(Icons.star,
+                            size: 16, color: Colors.orange.shade300),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(

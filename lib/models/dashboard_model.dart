@@ -23,7 +23,8 @@ class DashboardStats {
       lostAssets: (json['lost_assets'] as num?)?.toInt() ?? 0,
       activeQrCodes: (json['active_qr_codes'] as num?)?.toInt() ?? 0,
       totalOrders: (json['total_orders'] as num?)?.toInt() ?? 0,
-      remainingBarcodeQuota: (json['remaining_barcode_quota'] as num?)?.toInt() ?? 0,
+      remainingBarcodeQuota:
+          (json['remaining_barcode_quota'] as num?)?.toInt() ?? 0,
     );
   }
 }
@@ -84,21 +85,28 @@ class DashboardModel {
       recentOrders: _toOrderList(data['recent_orders']),
       renewalPackages: _toPackageList(data['renewal_packages']),
       midtransConfig: data['midtrans_config'] is Map<String, dynamic>
-          ? MidtransConfig.fromJson(data['midtrans_config'] as Map<String, dynamic>)
+          ? MidtransConfig.fromJson(
+              data['midtrans_config'] as Map<String, dynamic>)
           : null,
     );
   }
 
   static List<AssetModel> _toAssetList(dynamic raw) {
     if (raw is List) {
-      return raw.whereType<Map<String, dynamic>>().map(AssetModel.fromJson).toList();
+      return raw
+          .whereType<Map<String, dynamic>>()
+          .map(AssetModel.fromJson)
+          .toList();
     }
     return const [];
   }
 
   static List<OrderModel> _toOrderList(dynamic raw) {
     if (raw is List) {
-      return raw.whereType<Map<String, dynamic>>().map(OrderModel.fromJson).toList();
+      return raw
+          .whereType<Map<String, dynamic>>()
+          .map(OrderModel.fromJson)
+          .toList();
     }
     return const [];
   }
