@@ -5,6 +5,9 @@ import 'package:provider/provider.dart';
 import '../../models/dashboard_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/dashboard_service.dart';
+import '../../widgets/main_shell.dart';
+import '../../core/app_theme.dart';
+
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -51,10 +54,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final auth = context.watch<AuthProvider>();
     final stats = _dashboard?.stats;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Hai, Teman FOMI! 🌟'),
-        actions: [
+    return MainShell(
+      currentIndex: 0,
+      child: Scaffold(
+        backgroundColor: AppColors.bgBlue,
+        appBar: AppBar(
+          title: const Text('Hai, Teman FOMI! 🌟'),
+          backgroundColor: Colors.transparent,
+          actions: [
           IconButton(
             onPressed: () => context.push('/profile'),
             icon: const Icon(Icons.face),
@@ -184,9 +191,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ],
         ),
       ),
-    );
+    ), // end MainShell child Scaffold
+    ); // end MainShell
   }
 }
+
 
 class _StatCard extends StatelessWidget {
   const _StatCard({

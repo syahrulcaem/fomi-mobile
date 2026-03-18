@@ -6,7 +6,9 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import 'core/api_client.dart';
+import 'core/app_theme.dart';
 import 'providers/auth_provider.dart';
+import 'providers/cart_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/dashboard/dashboard_screen.dart';
@@ -19,39 +21,40 @@ import 'screens/qr/qrcode_detail_screen.dart';
 import 'screens/qr/qrcode_list_screen.dart';
 import 'screens/renewal/midtrans_payment_screen.dart';
 import 'screens/renewal/renewal_screen.dart';
+import 'screens/shop/shop_home_screen.dart';
+import 'screens/shop/product_list_screen.dart';
+import 'screens/shop/product_detail_screen.dart';
+import 'screens/shop/cart_screen.dart';
+import 'screens/shop/checkout_screen.dart';
+import 'screens/shop/subscription_screen.dart';
+import 'screens/shop/order_success_screen.dart';
+import 'screens/shop/shop_payment_screen.dart';
 import 'services/auth_service.dart';
+import 'services/cart_service.dart';
 import 'services/dashboard_service.dart';
 import 'services/merchandise_service.dart';
-import 'services/order_service.dart';
 import 'services/notification_service.dart';
+import 'services/order_service.dart';
 import 'services/profile_service.dart';
 import 'services/qrcode_service.dart';
 import 'services/renewal_service.dart';
+import 'services/shop_service.dart';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  if (kIsWeb) {
-    return;
-  }
+  if (kIsWeb) return;
   try {
     await Firebase.initializeApp();
-  } catch (_) {
-    // Ignore duplicate/init failures in background isolate.
-  }
+  } catch (_) {}
 }
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   if (!kIsWeb) {
     try {
       await Firebase.initializeApp();
-      FirebaseMessaging.onBackgroundMessage(
-          _firebaseMessagingBackgroundHandler);
-    } catch (_) {
-      // Firebase config may be unavailable on current platform.
-    }
+      FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    } catch (_) {}
   }
-
   runApp(const FomiApp());
 }
 
@@ -63,27 +66,22 @@ class FomiApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         Provider(create: (_) => ApiClient()),
-        Provider(create: (context) => AuthService(context.read<ApiClient>())),
-        Provider(
-          create: (context) => DashboardService(context.read<ApiClient>()),
-        ),
-        Provider(create: (context) => QrCodeService(context.read<ApiClient>())),
-        Provider(create: (context) => OrderService(context.read<ApiClient>())),
-        Provider(
-            create: (context) => ProfileService(context.read<ApiClient>())),
-        Provider(
-            create: (context) => RenewalService(context.read<ApiClient>())),
-        Provider(
-          create: (context) => NotificationService(context.read<ApiClient>()),
-        ),
-        Provider(
-          create: (context) => MerchandiseService(context.read<ApiClient>()),
-        ),
+        Provider(create: (ctx) => AuthService(ctx.read<ApiClient>())),
+        Provider(create: (ctx) => DashboardService(ctx.read<ApiClient>())),
+        Provider(create: (ctx) => QrCodeService(ctx.read<ApiClient>())),
+        Provider(create: (ctx) => OrderService(ctx.read<ApiClient>())),
+        Provider(create: (ctx) => ProfileService(ctx.read<ApiClient>())),
+        Provider(create: (ctx) => RenewalService(ctx.read<ApiClient>())),
+        Provider(create: (ctx) => NotificationService(ctx.read<ApiClient>())),
+        Provider(create: (ctx) => MerchandiseService(ctx.read<ApiClient>())),
+        Provider(create: (ctx) => ShopService(ctx.read<ApiClient>())),
+        Provider(create: (_) => CartService()),
         ChangeNotifierProvider(
-          create: (context) => AuthProvider(
-            context.read<AuthService>(),
-            context.read<NotificationService>(),
-          ),
+          create: (ctx) => AuthProvider(ctx.read<AuthService>(), ctx.read<NotificationService>()),
+        ),
+        ChangeNotifierProxyProvider<CartService, CartProvider>(
+          create: (ctx) => CartProvider(ctx.read<CartService>()),
+          update: (ctx, cartSvc, prev) => prev ?? CartProvider(cartSvc),
         ),
       ],
       child: const _AppRouter(),
@@ -107,146 +105,85 @@ class _AppRouter extends StatelessWidget {
         final path = state.matchedLocation;
         final isAuthPath = path == '/login' || path == '/register';
 
-        if (isLoading && path != '/splash') {
-          return '/splash';
-        }
-
+        if (isLoading && path != '/splash') return '/splash';
         if (!isLoading && !isAuth && !isAuthPath) {
+          // Shop routes that don't require auth
+          if (path.startsWith('/shop') || path == '/cart' || path == '/shop/subscription') {
+            return null;
+          }
           return '/login';
         }
-
-        if (!isLoading && isAuth && (isAuthPath || path == '/splash')) {
-          return '/dashboard';
-        }
-
+        if (!isLoading && isAuth && (isAuthPath || path == '/splash')) return '/dashboard';
         return null;
       },
       routes: [
+        GoRoute(path: '/splash', builder: (_, __) => const _SplashScreen()),
+        GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
+        GoRoute(path: '/register', builder: (_, __) => const RegisterScreen()),
+        // Dashboard (main home)
+        GoRoute(path: '/dashboard', builder: (_, __) => const DashboardScreen()),
+        // Shop
+        GoRoute(path: '/shop', builder: (_, __) => const ShopHomeScreen()),
         GoRoute(
-          path: '/splash',
-          builder: (context, state) => const _SplashScreen(),
+          path: '/shop/products',
+          builder: (_, state) {
+            final cat = state.uri.queryParameters['category'];
+            return ProductListScreen(initialCategory: cat);
+          },
         ),
         GoRoute(
-            path: '/login', builder: (context, state) => const LoginScreen()),
+          path: '/shop/products/:id',
+          builder: (_, state) => ProductDetailScreen(productId: state.pathParameters['id'] ?? ''),
+        ),
+        GoRoute(path: '/cart', builder: (_, __) => const CartScreen()),
+        GoRoute(path: '/checkout', builder: (_, __) => const CheckoutScreen()),
+        GoRoute(path: '/shop/subscription', builder: (_, __) => const SubscriptionScreen()),
         GoRoute(
-          path: '/register',
-          builder: (context, state) => const RegisterScreen(),
+          path: '/shop/success',
+          builder: (_, state) => OrderSuccessScreen(orderNumber: state.uri.queryParameters['orderNumber']),
         ),
         GoRoute(
-          path: '/dashboard',
-          builder: (context, state) => const DashboardScreen(),
+          path: '/shop/payment',
+          builder: (_, state) => ShopPaymentScreen(
+            snapUrl: state.uri.queryParameters['snapUrl'] ?? '',
+            orderId: state.uri.queryParameters['orderId'] ?? '',
+          ),
         ),
-        GoRoute(
-          path: '/qrcodes',
-          builder: (context, state) => const QrCodeListScreen(),
-        ),
+        // QR Codes
+        GoRoute(path: '/qrcodes', builder: (_, __) => const QrCodeListScreen()),
         GoRoute(
           path: '/qrcodes/:id',
-          builder: (context, state) {
-            final id = state.pathParameters['id'] ?? '';
-            return QrCodeDetailScreen(assetId: id);
-          },
+          builder: (_, state) => QrCodeDetailScreen(assetId: state.pathParameters['id'] ?? ''),
         ),
         GoRoute(
           path: '/qrcodes/:id/edit',
-          builder: (context, state) {
-            final id = state.pathParameters['id'] ?? '';
-            return EditQrCodeScreen(assetId: id);
-          },
+          builder: (_, state) => EditQrCodeScreen(assetId: state.pathParameters['id'] ?? ''),
         ),
-        GoRoute(
-            path: '/orders',
-            builder: (context, state) => const OrderListScreen()),
+        // Orders
+        GoRoute(path: '/orders', builder: (_, __) => const OrderListScreen()),
         GoRoute(
           path: '/orders/:id',
-          builder: (context, state) {
-            final id = state.pathParameters['id'] ?? '';
-            return OrderDetailScreen(orderId: id);
-          },
+          builder: (_, state) => OrderDetailScreen(orderId: state.pathParameters['id'] ?? ''),
         ),
-        GoRoute(
-            path: '/profile',
-            builder: (context, state) => const ProfileScreen()),
-        GoRoute(
-          path: '/renewal',
-          builder: (context, state) => const RenewalScreen(),
-        ),
+        // Profile
+        GoRoute(path: '/profile', builder: (_, __) => const ProfileScreen()),
+        // Renewal (existing)
+        GoRoute(path: '/renewal', builder: (_, __) => const RenewalScreen()),
         GoRoute(
           path: '/renewal/payment',
-          builder: (context, state) {
-            final snapUrl = state.uri.queryParameters['snapUrl'] ?? '';
-            final orderId = state.uri.queryParameters['orderId'] ?? '';
-            return MidtransPaymentScreen(snapUrl: snapUrl, orderId: orderId);
-          },
+          builder: (_, state) => MidtransPaymentScreen(
+            snapUrl: state.uri.queryParameters['snapUrl'] ?? '',
+            orderId: state.uri.queryParameters['orderId'] ?? '',
+          ),
         ),
-        GoRoute(
-          path: '/merchandise',
-          builder: (context, state) => const MerchandiseScreen(),
-        ),
+        GoRoute(path: '/merchandise', builder: (_, __) => const MerchandiseScreen()),
       ],
     );
 
     return MaterialApp.router(
       title: 'FOMI',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
-        scaffoldBackgroundColor:
-            const Color(0xFFF0F8FF), // Alice blue background
-        appBarTheme: const AppBarTheme(
-          centerTitle: true,
-          backgroundColor: Colors.blue,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
-          ),
-          titleTextStyle: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.orange, // Orange accent for buttons
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(24),
-            ),
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-            textStyle:
-                const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            elevation: 4,
-          ),
-        ),
-        cardTheme: CardTheme(
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          color: Colors.white,
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: Colors.white,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(24),
-            borderSide: const BorderSide(color: Colors.blue, width: 2),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(24),
-            borderSide: BorderSide(color: Colors.blue.shade200, width: 2),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(24),
-            borderSide: const BorderSide(color: Colors.blue, width: 3),
-          ),
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        ),
-      ),
+      theme: AppTheme.theme,
       routerConfig: router,
     );
   }
@@ -257,8 +194,20 @@ class _SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: CircularProgressIndicator()),
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(gradient: AppGradients.heroGradient),
+        child: const Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(color: Color(0xFF3B82F6)),
+              SizedBox(height: 16),
+              Text('FOMI', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Color(0xFF1E3A5F))),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
