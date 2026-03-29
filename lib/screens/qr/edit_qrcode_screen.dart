@@ -18,7 +18,18 @@ class _EditQrCodeScreenState extends State<EditQrCodeScreen> {
   final _contactNameController = TextEditingController();
   final _contactPhoneController = TextEditingController();
   final _contactEmailController = TextEditingController();
+  final _contactAddressController = TextEditingController();
+  final _contactNoteController = TextEditingController();
+  final Set<String> _visibleFields = <String>{};
   bool _loading = false;
+  String? _privacyMode;
+
+  static const List<String> _visibleFieldOptions = [
+    'name',
+    'phone',
+    'email',
+    'address',
+  ];
 
   @override
   void initState() {
@@ -33,6 +44,8 @@ class _EditQrCodeScreenState extends State<EditQrCodeScreen> {
     _contactNameController.dispose();
     _contactPhoneController.dispose();
     _contactEmailController.dispose();
+    _contactAddressController.dispose();
+    _contactNoteController.dispose();
     super.dispose();
   }
 
@@ -52,6 +65,18 @@ class _EditQrCodeScreenState extends State<EditQrCodeScreen> {
           detail.contactInfo?['phone']?.toString() ?? '';
       _contactEmailController.text =
           detail.contactInfo?['email']?.toString() ?? '';
+      _contactAddressController.text =
+          detail.contactInfo?['address']?.toString() ?? '';
+      _contactNoteController.text =
+          detail.contactInfo?['note']?.toString() ?? '';
+
+      final privacyMode = detail.privacyMode;
+      if (privacyMode == 'global' || privacyMode == 'custom') {
+        _privacyMode = privacyMode;
+      }
+      _visibleFields
+        ..clear()
+        ..addAll(detail.visibleFields.where(_visibleFieldOptions.contains));
     } finally {
       if (mounted) {
         setState(() => _loading = false);
@@ -78,6 +103,11 @@ class _EditQrCodeScreenState extends State<EditQrCodeScreen> {
         contactName: _contactNameController.text.trim(),
         contactPhone: _contactPhoneController.text.trim(),
         contactEmail: _contactEmailController.text.trim(),
+        contactAddress: _contactAddressController.text.trim(),
+        contactNote: _contactNoteController.text.trim(),
+        privacyMode: _privacyMode,
+        visibleFields:
+            _privacyMode == 'custom' ? _visibleFields.toList() : null,
       );
       if (!mounted) {
         return;
@@ -153,6 +183,7 @@ class _EditQrCodeScreenState extends State<EditQrCodeScreen> {
                       const SizedBox(height: 16),
                       TextField(
                         controller: _contactPhoneController,
+                        keyboardType: TextInputType.phone,
                         decoration: const InputDecoration(
                           labelText: 'Nomor Telepon',
                           prefixIcon: Icon(Icons.phone_outlined),
@@ -161,11 +192,88 @@ class _EditQrCodeScreenState extends State<EditQrCodeScreen> {
                       const SizedBox(height: 16),
                       TextField(
                         controller: _contactEmailController,
+                        keyboardType: TextInputType.emailAddress,
                         decoration: const InputDecoration(
                           labelText: 'Alamat Email',
                           prefixIcon: Icon(Icons.email_outlined),
                         ),
                       ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _contactAddressController,
+                        decoration: const InputDecoration(
+                          labelText: 'Alamat',
+                          prefixIcon: Icon(Icons.location_on_outlined),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _contactNoteController,
+                        minLines: 2,
+                        maxLines: 4,
+                        decoration: const InputDecoration(
+                          labelText: 'Catatan Kontak',
+                          prefixIcon: Icon(Icons.sticky_note_2_outlined),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      DropdownButtonFormField<String>(
+                        value: _privacyMode,
+                        decoration: const InputDecoration(
+                          labelText: 'Mode Privasi',
+                          prefixIcon: Icon(Icons.shield_outlined),
+                        ),
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'global',
+                            child: Text('Global'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'custom',
+                            child: Text('Custom'),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          setState(() {
+                            _privacyMode = value;
+                            if (value != 'custom') {
+                              _visibleFields.clear();
+                            }
+                          });
+                        },
+                      ),
+                      if (_privacyMode == 'custom') ...[
+                        const SizedBox(height: 12),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            'Field yang ditampilkan',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blueGrey.shade700,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        ..._visibleFieldOptions.map(
+                          (field) => CheckboxListTile(
+                            value: _visibleFields.contains(field),
+                            onChanged: (checked) {
+                              setState(() {
+                                if (checked == true) {
+                                  _visibleFields.add(field);
+                                } else {
+                                  _visibleFields.remove(field);
+                                }
+                              });
+                            },
+                            title: Text(field),
+                            dense: true,
+                            contentPadding: EdgeInsets.zero,
+                            controlAffinity: ListTileControlAffinity.leading,
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 32),
                       SizedBox(
                         width: double.infinity,

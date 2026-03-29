@@ -1,5 +1,6 @@
 import '../core/api_client.dart';
 import '../models/asset_model.dart';
+import '../models/chat_model.dart';
 import '../models/paginated_response.dart';
 import '../models/qrcode_model.dart';
 
@@ -10,26 +11,9 @@ class QrCodeService {
 
   Future<PaginatedResponse<QrCodeModel>> getUserQrCodes({
     int page = 1,
-    int perPage = 10,
+    int perPage = 12,
   }) async {
-    try {
-      final response = await _apiClient.dio.get(
-        '/assets',
-        queryParameters: {
-          'page': page,
-          'per_page': perPage,
-        },
-      );
-
-      final parsed = _extractAssetsAsQrCodes(response.data);
-      if (parsed != null) {
-        return parsed;
-      }
-    } catch (_) {
-      // Fallback to legacy endpoint if assets endpoint shape changes.
-    }
-
-    final fallback = await _apiClient.dio.get(
+    final response = await _apiClient.dio.get(
       '/user/qrcodes',
       queryParameters: {
         'page': page,
@@ -37,46 +21,28 @@ class QrCodeService {
       },
     );
 
+    final parsed = _extractAssetsAsQrCodes(response.data);
+    if (parsed != null) {
+      return parsed;
+    }
+
     return PaginatedResponse.fromAny<QrCodeModel>(
-      fallback.data,
+      response.data,
       QrCodeModel.fromJson,
     );
   }
 
   Future<QrCodeModel?> getQrCodeDetail(String assetId) async {
-    try {
-      final response = await _apiClient.dio.get('/assets/$assetId');
-      final data = response.data;
-      if (data is Map<String, dynamic>) {
-        final assetJson = data['asset'] is Map<String, dynamic>
-            ? data['asset'] as Map<String, dynamic>
-            : data;
-        return QrCodeModel.fromAsset(AssetModel.fromJson(assetJson));
-      }
-    } catch (_) {
-      // Fallback to legacy endpoint when needed.
+    final response = await _apiClient.dio.get('/assets/$assetId');
+    final data = response.data;
+    if (data is Map<String, dynamic>) {
+      final assetJson = data['asset'] is Map<String, dynamic>
+          ? data['asset'] as Map<String, dynamic>
+          : data;
+      return QrCodeModel.fromAsset(AssetModel.fromJson(assetJson));
     }
 
-    final fallback = await _apiClient.dio.get(
-      '/user/qrcodes',
-      queryParameters: {
-        'asset_id': assetId,
-        'per_page': 1,
-      },
-    );
-
-    final parsed = PaginatedResponse.fromAny<QrCodeModel>(
-      fallback.data,
-      QrCodeModel.fromJson,
-    );
-
-    for (final item in parsed.items) {
-      if (item.routeAssetId == assetId || item.id == assetId) {
-        return item;
-      }
-    }
-
-    return parsed.items.isNotEmpty ? parsed.items.first : null;
+    return null;
   }
 
   Future<QrCodeModel> updateQrCode({
@@ -86,29 +52,49 @@ class QrCodeService {
     String? contactName,
     String? contactPhone,
     String? contactEmail,
+    String? contactAddress,
+    String? contactNote,
+    String? privacyMode,
+    List<String>? visibleFields,
   }) async {
-    final payload = {
+    final payload = <String, dynamic>{
       'name': name,
-      'description': description,
-      'contact_info': {
-        'name': contactName,
-        'phone': contactPhone,
-        'email': contactEmail,
-      },
+      'description': _emptyToNull(description),
+      'contact_name': _emptyToNull(contactName),
+      'contact_phone': _emptyToNull(contactPhone),
+      'contact_email': _emptyToNull(contactEmail),
+      'contact_address': _emptyToNull(contactAddress),
+      'contact_note': _emptyToNull(contactNote),
     };
 
-    final response =
-        await _apiClient.dio.put('/user/qrcodes/$assetId', data: payload);
+    final normalizedPrivacyMode = _emptyToNull(privacyMode);
+    if (normalizedPrivacyMode != null) {
+      payload['privacy_mode'] = normalizedPrivacyMode;
+    }
+
+    if (visibleFields != null && visibleFields.isNotEmpty) {
+      payload['visible_fields'] = visibleFields;
+    }
+
+    final response = await _apiClient.dio.put(
+      '/user/qrcodes/$assetId',
+      data: payload,
+    );
     final data = response.data;
     if (data is Map<String, dynamic>) {
-      final qrMap = data['data'] is Map<String, dynamic>
-          ? data['data'] as Map<String, dynamic>
-          : data['qrcode'] is Map<String, dynamic>
-              ? data['qrcode'] as Map<String, dynamic>
-              : data;
+      final qrMap = data['asset'] is Map<String, dynamic>
+          ? data['asset'] as Map<String, dynamic>
+          : data['data'] is Map<String, dynamic>
+              ? data['data'] as Map<String, dynamic>
+              : data['qrcode'] is Map<String, dynamic>
+                  ? data['qrcode'] as Map<String, dynamic>
+                  : data;
+      if (qrMap['contact_info'] != null || qrMap['qr_codes'] != null) {
+        return QrCodeModel.fromAsset(AssetModel.fromJson(qrMap));
+      }
       return QrCodeModel.fromJson(qrMap);
     }
-    return QrCodeModel.fromJson(const {});
+    return QrCodeModel.fromAsset(AssetModel.fromJson(const {}));
   }
 
   Future<QrCodeModel> toggleLostStatus(String assetId) async {
@@ -116,14 +102,116 @@ class QrCodeService {
         await _apiClient.dio.patch('/user/qrcodes/$assetId/toggle-lost');
     final data = response.data;
     if (data is Map<String, dynamic>) {
-      final qrMap = data['data'] is Map<String, dynamic>
-          ? data['data'] as Map<String, dynamic>
-          : data['qrcode'] is Map<String, dynamic>
-              ? data['qrcode'] as Map<String, dynamic>
-              : data;
+      final qrMap = data['asset'] is Map<String, dynamic>
+          ? data['asset'] as Map<String, dynamic>
+          : data['data'] is Map<String, dynamic>
+              ? data['data'] as Map<String, dynamic>
+              : data['qrcode'] is Map<String, dynamic>
+                  ? data['qrcode'] as Map<String, dynamic>
+                  : data;
+      if (qrMap['contact_info'] != null || qrMap['qr_codes'] != null) {
+        return QrCodeModel.fromAsset(AssetModel.fromJson(qrMap));
+      }
       return QrCodeModel.fromJson(qrMap);
     }
-    return QrCodeModel.fromJson(const {});
+    return QrCodeModel.fromAsset(AssetModel.fromJson(const {}));
+  }
+
+  Future<Map<String, List<ChatModel>>> getAssetChats(String assetId) async {
+    final response = await _apiClient.dio.get(
+      '/assets/$assetId/chats',
+      queryParameters: {
+        '_t': DateTime.now().millisecondsSinceEpoch,
+      },
+    );
+    final data = response.data;
+
+    if (data is! Map<String, dynamic>) {
+      return const {};
+    }
+
+    final result = <String, List<ChatModel>>{};
+    for (final entry in data.entries) {
+      final sessionId = entry.key;
+      final value = entry.value;
+      if (value is! List) {
+        continue;
+      }
+
+      final messages = value
+          .whereType<Map<String, dynamic>>()
+          .map(
+            (item) => ChatModel.fromJson(
+              item['session_id'] == null
+                  ? {
+                      ...item,
+                      'session_id': sessionId,
+                    }
+                  : item,
+            ),
+          )
+          .toList();
+
+      result[sessionId] = messages;
+    }
+
+    return result;
+  }
+
+  Future<ChatModel> replyAssetChat({
+    required String assetId,
+    required String sessionId,
+    required String message,
+  }) async {
+    final response = await _apiClient.dio.post(
+      '/assets/$assetId/chats',
+      data: {
+        'session_id': sessionId,
+        'message': message.trim(),
+      },
+    );
+
+    final data = response.data;
+    if (data is Map<String, dynamic>) {
+      final chatData = data['chat'] is Map<String, dynamic>
+          ? data['chat'] as Map<String, dynamic>
+          : data;
+      return ChatModel.fromJson(chatData);
+    }
+
+    return ChatModel(
+      id: '',
+      assetId: assetId,
+      senderType: 'owner',
+      message: message,
+      sessionId: sessionId,
+    );
+  }
+
+  Future<bool> deleteAssetChatSession({
+    required String assetId,
+    required String sessionId,
+  }) async {
+    final encodedSession = Uri.encodeComponent(sessionId);
+
+    try {
+      await _apiClient.dio.delete('/assets/$assetId/chats/$encodedSession');
+      return true;
+    } on Exception {
+      // Try alternate shape when backend expects session in body.
+    }
+
+    try {
+      await _apiClient.dio.delete(
+        '/assets/$assetId/chats',
+        data: {
+          'session_id': sessionId,
+        },
+      );
+      return true;
+    } on Exception {
+      return false;
+    }
   }
 
   PaginatedResponse<QrCodeModel>? _extractAssetsAsQrCodes(dynamic raw) {
@@ -143,11 +231,17 @@ class QrCodeService {
     }
 
     if (raw is Map<String, dynamic>) {
+      final nested = raw['data'] is Map<String, dynamic>
+          ? raw['data'] as Map<String, dynamic>
+          : null;
+
       final list = raw['data'] is List
           ? raw['data'] as List
-          : raw['assets'] is List
-              ? raw['assets'] as List
-              : <dynamic>[];
+          : nested?['data'] is List
+              ? nested!['data'] as List
+              : raw['assets'] is List
+                  ? raw['assets'] as List
+                  : <dynamic>[];
 
       final items = list
           .whereType<Map<String, dynamic>>()
@@ -155,10 +249,18 @@ class QrCodeService {
           .map(QrCodeModel.fromAsset)
           .toList();
 
-      final currentPage = (raw['current_page'] as num?)?.toInt() ?? 1;
-      final lastPage = (raw['last_page'] as num?)?.toInt() ?? 1;
-      final perPage = (raw['per_page'] as num?)?.toInt() ?? items.length;
-      final total = (raw['total'] as num?)?.toInt() ?? items.length;
+      final currentPage = (raw['current_page'] as num?)?.toInt() ??
+          (nested?['current_page'] as num?)?.toInt() ??
+          1;
+      final lastPage = (raw['last_page'] as num?)?.toInt() ??
+          (nested?['last_page'] as num?)?.toInt() ??
+          1;
+      final perPage = (raw['per_page'] as num?)?.toInt() ??
+          (nested?['per_page'] as num?)?.toInt() ??
+          items.length;
+      final total = (raw['total'] as num?)?.toInt() ??
+          (nested?['total'] as num?)?.toInt() ??
+          items.length;
 
       return PaginatedResponse<QrCodeModel>(
         items: items,
@@ -171,4 +273,12 @@ class QrCodeService {
 
     return null;
   }
+}
+
+String? _emptyToNull(String? value) {
+  if (value == null) {
+    return null;
+  }
+  final trimmed = value.trim();
+  return trimmed.isEmpty ? null : trimmed;
 }

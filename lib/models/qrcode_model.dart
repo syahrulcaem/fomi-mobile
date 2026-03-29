@@ -11,6 +11,8 @@ class QrCodeModel {
     this.code,
     this.assetId,
     this.imageUrl,
+    this.privacyMode,
+    this.visibleFields = const [],
   });
 
   final String id;
@@ -22,6 +24,8 @@ class QrCodeModel {
   final String? code;
   final String? assetId;
   final String? imageUrl;
+  final String? privacyMode;
+  final List<String> visibleFields;
 
   String get routeAssetId => assetId ?? id;
 
@@ -40,6 +44,8 @@ class QrCodeModel {
       code: json['code']?.toString(),
       assetId: json['asset_id']?.toString(),
       imageUrl: _normalizeImageUrl(json['image']?.toString()),
+      privacyMode: json['privacy_mode']?.toString(),
+      visibleFields: _toStringList(json['visible_fields']),
     );
   }
 
@@ -52,8 +58,11 @@ class QrCodeModel {
       description: asset.description,
       status: asset.status,
       contactInfo: asset.contactInfo,
+      scanLogsCount: asset.scanLogsCount,
       code: primaryQr?.code,
       imageUrl: primaryQr?.imageUrl ?? asset.image,
+      privacyMode: null,
+      visibleFields: const [],
     );
   }
 
@@ -63,17 +72,37 @@ class QrCodeModel {
     String? contactName,
     String? contactPhone,
     String? contactEmail,
+    String? contactAddress,
+    String? contactNote,
+    String? privacyMode,
+    List<String>? visibleFields,
   }) {
-    return {
+    final payload = <String, dynamic>{
       'name': name,
       'description': description,
-      'contact_info': {
-        'name': contactName,
-        'phone': contactPhone,
-        'email': contactEmail,
-      },
+      'contact_name': contactName,
+      'contact_phone': contactPhone,
+      'contact_email': contactEmail,
+      'contact_address': contactAddress,
+      'contact_note': contactNote,
     };
+
+    if (privacyMode != null) {
+      payload['privacy_mode'] = privacyMode;
+    }
+    if (visibleFields != null) {
+      payload['visible_fields'] = visibleFields;
+    }
+
+    return payload;
   }
+}
+
+List<String> _toStringList(dynamic value) {
+  if (value is! List) {
+    return const [];
+  }
+  return value.map((item) => item.toString()).toList();
 }
 
 String? _normalizeImageUrl(String? raw) {

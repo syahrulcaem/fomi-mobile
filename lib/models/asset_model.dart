@@ -6,6 +6,7 @@ class AssetModel {
     this.status,
     this.image,
     this.contactInfo,
+    this.scanLogsCount,
     this.qrCodes = const [],
   });
 
@@ -15,6 +16,7 @@ class AssetModel {
   final String? status;
   final String? image;
   final Map<String, dynamic>? contactInfo;
+  final int? scanLogsCount;
   final List<AssetQrCode> qrCodes;
 
   AssetQrCode? get primaryQrCode => qrCodes.isNotEmpty ? qrCodes.first : null;
@@ -22,6 +24,11 @@ class AssetModel {
   bool get isLost => status == 'lost';
 
   factory AssetModel.fromJson(Map<String, dynamic> json) {
+    final scanLogs = json['scan_logs'];
+    final scanLogsCount = scanLogs is List
+        ? scanLogs.length
+        : (json['scan_logs_count'] as num?)?.toInt();
+
     return AssetModel(
       id: json['id']?.toString() ?? '',
       name: json['name']?.toString() ?? '-',
@@ -31,6 +38,7 @@ class AssetModel {
       contactInfo: json['contact_info'] is Map<String, dynamic>
           ? json['contact_info'] as Map<String, dynamic>
           : null,
+      scanLogsCount: scanLogsCount,
       qrCodes: (json['qr_codes'] as List?)
               ?.whereType<Map<String, dynamic>>()
               .map(AssetQrCode.fromJson)

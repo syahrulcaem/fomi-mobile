@@ -99,7 +99,7 @@ class _QrCodeDetailScreenState extends State<QrCodeDetailScreen> {
                                   borderRadius: BorderRadius.circular(20),
                                   child: Image.network(
                                     qr.imageUrl!,
-                                    height: 200,
+                                    height: 250,
                                     width: double.infinity,
                                     fit: BoxFit.cover,
                                     errorBuilder: (_, __, ___) => Container(

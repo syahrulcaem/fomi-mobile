@@ -19,7 +19,7 @@ class MainShell extends StatelessWidget {
         context.go('/shop');
         break;
       case 2:
-        context.go('/qrcodes');
+        context.go('/scan');
         break;
       case 3:
         context.go('/orders');
@@ -121,9 +121,9 @@ class MainShell extends StatelessWidget {
                 label: 'Shop',
               ),
               const BottomNavigationBarItem(
-                icon: Icon(Icons.qr_code_outlined),
-                activeIcon: Icon(Icons.qr_code),
-                label: 'QR Codes',
+                icon: Icon(Icons.qr_code_scanner),
+                activeIcon: Icon(Icons.document_scanner),
+                label: 'Scan',
               ),
               const BottomNavigationBarItem(
                 icon: Icon(Icons.receipt_long_outlined),

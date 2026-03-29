@@ -80,19 +80,60 @@ class NotificationService {
 
   Future<void> _onForegroundMessage(RemoteMessage message) async {
     final notification = message.notification;
-    if (notification == null) {
+    final data = message.data;
+
+    final title = notification?.title ?? data['title']?.toString();
+    final body = notification?.body ?? data['body']?.toString();
+    if ((title == null || title.isEmpty) && (body == null || body.isEmpty)) {
+      return;
+    }
+
+    await showLocalAlert(
+      id: notification?.hashCode ??
+          DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      title: title,
+      body: body,
+      channelId: 'fomi_alerts',
+      channelName: 'FOMI Alerts',
+      channelDescription: 'Notifikasi scan barcode dan update akun',
+    );
+  }
+
+  Future<void> showChatAlert({
+    required String title,
+    required String body,
+  }) async {
+    await showLocalAlert(
+      id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      title: title,
+      body: body,
+      channelId: 'fomi_chat',
+      channelName: 'FOMI Chat',
+      channelDescription: 'Notifikasi chat anonim QR',
+    );
+  }
+
+  Future<void> showLocalAlert({
+    required int id,
+    required String? title,
+    required String? body,
+    required String channelId,
+    required String channelName,
+    required String channelDescription,
+  }) async {
+    if (kIsWeb) {
       return;
     }
 
     await _localNotifications.show(
-      notification.hashCode,
-      notification.title,
-      notification.body,
-      const NotificationDetails(
+      id,
+      title,
+      body,
+      NotificationDetails(
         android: AndroidNotificationDetails(
-          'fomi_alerts',
-          'FOMI Alerts',
-          channelDescription: 'Notifikasi scan barcode dan update akun',
+          channelId,
+          channelName,
+          channelDescription: channelDescription,
           importance: Importance.max,
           priority: Priority.high,
         ),

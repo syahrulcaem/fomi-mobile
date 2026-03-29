@@ -29,6 +29,7 @@ import 'screens/shop/checkout_screen.dart';
 import 'screens/shop/subscription_screen.dart';
 import 'screens/shop/order_success_screen.dart';
 import 'screens/shop/shop_payment_screen.dart';
+import 'screens/scan/scan_screen.dart';
 import 'services/auth_service.dart';
 import 'services/cart_service.dart';
 import 'services/dashboard_service.dart';
@@ -52,7 +53,8 @@ Future<void> main() async {
   if (!kIsWeb) {
     try {
       await Firebase.initializeApp();
-      FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+      FirebaseMessaging.onBackgroundMessage(
+          _firebaseMessagingBackgroundHandler);
     } catch (_) {}
   }
   runApp(const FomiApp());
@@ -77,7 +79,8 @@ class FomiApp extends StatelessWidget {
         Provider(create: (ctx) => ShopService(ctx.read<ApiClient>())),
         Provider(create: (_) => CartService()),
         ChangeNotifierProvider(
-          create: (ctx) => AuthProvider(ctx.read<AuthService>(), ctx.read<NotificationService>()),
+          create: (ctx) => AuthProvider(
+              ctx.read<AuthService>(), ctx.read<NotificationService>()),
         ),
         ChangeNotifierProxyProvider<CartService, CartProvider>(
           create: (ctx) => CartProvider(ctx.read<CartService>()),
@@ -107,13 +110,16 @@ class _AppRouter extends StatelessWidget {
 
         if (isLoading && path != '/splash') return '/splash';
         if (!isLoading && !isAuth && !isAuthPath) {
-          // Shop routes that don't require auth
-          if (path.startsWith('/shop') || path == '/cart' || path == '/shop/subscription') {
+          // Shop & scan routes that don't require auth
+          if (path.startsWith('/shop') || path == '/shop/subscription') {
             return null;
           }
+          // Cart and checkout require auth
+          if (path == '/cart' || path == '/checkout') return '/login';
           return '/login';
         }
-        if (!isLoading && isAuth && (isAuthPath || path == '/splash')) return '/dashboard';
+        if (!isLoading && isAuth && (isAuthPath || path == '/splash'))
+          return '/dashboard';
         return null;
       },
       routes: [
@@ -121,7 +127,8 @@ class _AppRouter extends StatelessWidget {
         GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
         GoRoute(path: '/register', builder: (_, __) => const RegisterScreen()),
         // Dashboard (main home)
-        GoRoute(path: '/dashboard', builder: (_, __) => const DashboardScreen()),
+        GoRoute(
+            path: '/dashboard', builder: (_, __) => const DashboardScreen()),
         // Shop
         GoRoute(path: '/shop', builder: (_, __) => const ShopHomeScreen()),
         GoRoute(
@@ -133,14 +140,18 @@ class _AppRouter extends StatelessWidget {
         ),
         GoRoute(
           path: '/shop/products/:id',
-          builder: (_, state) => ProductDetailScreen(productId: state.pathParameters['id'] ?? ''),
+          builder: (_, state) =>
+              ProductDetailScreen(productId: state.pathParameters['id'] ?? ''),
         ),
         GoRoute(path: '/cart', builder: (_, __) => const CartScreen()),
         GoRoute(path: '/checkout', builder: (_, __) => const CheckoutScreen()),
-        GoRoute(path: '/shop/subscription', builder: (_, __) => const SubscriptionScreen()),
+        GoRoute(
+            path: '/shop/subscription',
+            builder: (_, __) => const SubscriptionScreen()),
         GoRoute(
           path: '/shop/success',
-          builder: (_, state) => OrderSuccessScreen(orderNumber: state.uri.queryParameters['orderNumber']),
+          builder: (_, state) => OrderSuccessScreen(
+              orderNumber: state.uri.queryParameters['orderNumber']),
         ),
         GoRoute(
           path: '/shop/payment',
@@ -149,21 +160,29 @@ class _AppRouter extends StatelessWidget {
             orderId: state.uri.queryParameters['orderId'] ?? '',
           ),
         ),
+        // Scan / Merchandise
+        GoRoute(path: '/scan', builder: (_, __) => const ScanScreen()),
+        GoRoute(
+            path: '/merchandise',
+            builder: (_, __) => const ScanScreen()), // alias
         // QR Codes
         GoRoute(path: '/qrcodes', builder: (_, __) => const QrCodeListScreen()),
         GoRoute(
           path: '/qrcodes/:id',
-          builder: (_, state) => QrCodeDetailScreen(assetId: state.pathParameters['id'] ?? ''),
+          builder: (_, state) =>
+              QrCodeDetailScreen(assetId: state.pathParameters['id'] ?? ''),
         ),
         GoRoute(
           path: '/qrcodes/:id/edit',
-          builder: (_, state) => EditQrCodeScreen(assetId: state.pathParameters['id'] ?? ''),
+          builder: (_, state) =>
+              EditQrCodeScreen(assetId: state.pathParameters['id'] ?? ''),
         ),
         // Orders
         GoRoute(path: '/orders', builder: (_, __) => const OrderListScreen()),
         GoRoute(
           path: '/orders/:id',
-          builder: (_, state) => OrderDetailScreen(orderId: state.pathParameters['id'] ?? ''),
+          builder: (_, state) =>
+              OrderDetailScreen(orderId: state.pathParameters['id'] ?? ''),
         ),
         // Profile
         GoRoute(path: '/profile', builder: (_, __) => const ProfileScreen()),
@@ -176,7 +195,9 @@ class _AppRouter extends StatelessWidget {
             orderId: state.uri.queryParameters['orderId'] ?? '',
           ),
         ),
-        GoRoute(path: '/merchandise', builder: (_, __) => const MerchandiseScreen()),
+        GoRoute(
+            path: '/merchandise',
+            builder: (_, __) => const MerchandiseScreen()),
       ],
     );
 
@@ -203,7 +224,11 @@ class _SplashScreen extends StatelessWidget {
             children: [
               CircularProgressIndicator(color: Color(0xFF3B82F6)),
               SizedBox(height: 16),
-              Text('FOMI', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Color(0xFF1E3A5F))),
+              Text('FOMI',
+                  style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF1E3A5F))),
             ],
           ),
         ),

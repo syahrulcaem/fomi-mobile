@@ -7,6 +7,7 @@ import '../../core/app_theme.dart';
 import '../../models/shop_dashboard_model.dart';
 import '../../models/shop_product_model.dart';
 import '../../services/shop_service.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../models/cart_item_model.dart';
 import '../../widgets/skeleton_loader.dart';
@@ -22,6 +23,7 @@ class ShopHomeScreen extends StatefulWidget {
 class _ShopHomeScreenState extends State<ShopHomeScreen> {
   bool _loading = true;
   ShopDashboardModel? _dashboard;
+  String? _selectedCategoryKey;
 
   @override
   void initState() {
@@ -57,8 +59,95 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
     return 'Rp ${buf.toString()}';
   }
 
+  String _buildCategoryRoute(String label) {
+    return Uri(
+      path: '/shop/products',
+      queryParameters: {'category': label},
+    ).toString();
+  }
+
+  String _normalizeText(String raw) {
+    return raw.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '');
+  }
+
+  String _displayCategoryLabel(String raw) {
+    final cleaned = raw.trim();
+    if (cleaned.isEmpty) {
+      return cleaned;
+    }
+
+    final lower = cleaned.toLowerCase();
+    return lower[0].toUpperCase() + lower.substring(1);
+  }
+
+  List<_CategoryChipItem> _homeCategoryItems() {
+    final cats = _dashboard?.categories.map((e) => e.name) ?? const <String>[];
+    final filters = _dashboard?.merchandise.filters ?? const <String>[];
+    final merged = [...cats, ...filters];
+
+    final seen = <String>{};
+    final items = <_CategoryChipItem>[
+      const _CategoryChipItem(key: 'all', label: 'Semua'),
+    ];
+
+    for (final raw in merged) {
+      final cleaned = raw.trim();
+      if (cleaned.isEmpty) {
+        continue;
+      }
+
+      final key = _normalizeText(cleaned);
+      if (key.isEmpty || !seen.add(key)) {
+        continue;
+      }
+
+      items.add(
+          _CategoryChipItem(key: key, label: _displayCategoryLabel(cleaned)));
+    }
+
+    return items;
+  }
+
+  bool _matchesCategory(ShopProduct product, String selectedKey) {
+    final candidates = <String>[
+      product.category ?? '',
+      product.type,
+      product.name,
+    ];
+
+    final hasTextMatch = candidates.any((value) {
+      final normalized = _normalizeText(value);
+      return normalized.contains(selectedKey) ||
+          selectedKey.contains(normalized);
+    });
+
+    if (hasTextMatch) {
+      return true;
+    }
+
+    if (selectedKey == 'barang' && _normalizeText(product.type) == 'physical') {
+      return true;
+    }
+
+    return false;
+  }
+
+  List<ShopProduct> _filteredHomeProducts() {
+    final products = _dashboard?.merchandise.products ?? const <ShopProduct>[];
+    final selectedKey = _selectedCategoryKey;
+
+    if (selectedKey == null || selectedKey.isEmpty || selectedKey == 'all') {
+      return products;
+    }
+
+    return products
+        .where((product) => _matchesCategory(product, selectedKey))
+        .toList();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isAuth = context.watch<AuthProvider>().isAuthenticated;
     return MainShell(
       currentIndex: 1,
       child: RefreshIndicator(
@@ -67,7 +156,9 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
         child: CustomScrollView(
           slivers: [
             // Gradient AppBar / Hero
-            SliverToBoxAdapter(child: _buildHero()),
+            SliverToBoxAdapter(child: _buildHero(isAuth)),
+            // Guest login prompt
+            if (!isAuth) SliverToBoxAdapter(child: _buildGuestBanner()),
             // Categories
             SliverToBoxAdapter(child: _buildCategories()),
             // Products header
@@ -87,12 +178,20 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
                     ),
                     GestureDetector(
                       onTap: () => context.push('/shop/products'),
-                      child: const Text(
-                        'Lihat Semua',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: AppColors.primaryBlue,
-                          fontWeight: FontWeight.w600,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.softBlue,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Text(
+                          'Lihat Semua',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.primaryBlue,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
@@ -111,7 +210,7 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
     );
   }
 
-  Widget _buildHero() {
+  Widget _buildHero(bool isAuth) {
     final hero = _dashboard?.hero;
 
     return Container(
@@ -135,43 +234,56 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Center(
-                  child: Text('F', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 20)),
+                  child: Text('F',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 20)),
                 ),
               ),
               const SizedBox(width: 8),
-              const Text('Fomi', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: AppColors.darkBlue)),
+              const Text('Fomi Shop',
+                  style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 18,
+                      color: AppColors.darkBlue)),
               const Spacer(),
-              GestureDetector(
-                onTap: () => context.push('/cart'),
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.8),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Consumer<CartProvider>(
-                    builder: (context, cart, _) => Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        const Icon(Icons.shopping_cart_outlined, color: AppColors.primaryBlue, size: 22),
-                        if (cart.count > 0)
-                          Positioned(
-                            right: -4,
-                            top: -4,
-                            child: Container(
-                              width: 14,
-                              height: 14,
-                              decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                              child: Center(
-                                child: Text('${cart.count}', style: const TextStyle(color: Colors.white, fontSize: 8)),
+              if (isAuth)
+                GestureDetector(
+                  onTap: () => context.push('/cart'),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.8),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Consumer<CartProvider>(
+                      builder: (context, cart, _) => Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          const Icon(Icons.shopping_cart_outlined,
+                              color: AppColors.primaryBlue, size: 22),
+                          if (cart.count > 0)
+                            Positioned(
+                              right: -4,
+                              top: -4,
+                              child: Container(
+                                width: 14,
+                                height: 14,
+                                decoration: const BoxDecoration(
+                                    color: Colors.red, shape: BoxShape.circle),
+                                child: Center(
+                                  child: Text('${cart.count}',
+                                      style: const TextStyle(
+                                          color: Colors.white, fontSize: 8)),
+                                ),
                               ),
                             ),
-                          ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
             ],
           ),
           const SizedBox(height: 24),
@@ -200,38 +312,48 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
+                    // Subscribe button (always shown)
                     SizedBox(
                       width: double.infinity,
-                      child: ElevatedButton(
+                      child: ElevatedButton.icon(
                         onPressed: () => context.push('/shop/subscription'),
+                        icon: const Icon(Icons.stars_rounded, size: 16),
+                        label: const Text('Langganan'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primaryBlue,
                           padding: const EdgeInsets.symmetric(vertical: 10),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30)),
                         ),
-                        child: Text(hero?.ctaPrimaryLabel ?? 'Daftar Gratis',
-                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
                       ),
                     ),
                     const SizedBox(height: 8),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton(
-                        onPressed: () => context.push('/profile'),
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: AppColors.primaryBlue, width: 1.5),
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                    if (!isAuth)
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: () => context.push('/login'),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(
+                                color: AppColors.primaryBlue, width: 1.5),
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30)),
+                          ),
+                          child: const Text('Masuk / Daftar',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primaryBlue)),
                         ),
-                        child: Text(hero?.ctaSecondaryLabel ?? 'Ubah Akun Anak',
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primaryBlue)),
                       ),
-                    ),
                     const SizedBox(height: 8),
                     Text(
-                      hero?.subtitle ?? 'Gunakan teknologi FOMI untuk membuat orang yang ditemukan aman.',
+                      hero?.subtitle ??
+                          'Gunakan teknologi FOMI untuk tetap terhubung.',
                       textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                      style: const TextStyle(
+                          fontSize: 11, color: AppColors.textSecondary),
                     ),
                   ],
                 ),
@@ -250,7 +372,41 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
     );
   }
 
-  Widget _buildHeroCard({required String tag, String? imageUrl, required IconData fallbackIcon}) {
+  Widget _buildGuestBanner() {
+    return GestureDetector(
+      onTap: () => context.push('/login'),
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.softBlue,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.skyBlue, width: 1.5),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.login_rounded,
+                color: AppColors.primaryBlue, size: 20),
+            const SizedBox(width: 10),
+            const Expanded(
+              child: Text(
+                'Masuk untuk akses keranjang & checkout',
+                style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.primaryBlue,
+                    fontWeight: FontWeight.w600),
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios_rounded,
+                size: 12, color: AppColors.primaryBlue),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeroCard(
+      {required String tag, String? imageUrl, required IconData fallbackIcon}) {
     return Container(
       width: 80,
       decoration: BoxDecoration(
@@ -278,14 +434,16 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
                       width: 80,
                       height: 90,
                       color: AppColors.softBlue,
-                      child: Icon(fallbackIcon, color: AppColors.primaryBlue, size: 36),
+                      child: Icon(fallbackIcon,
+                          color: AppColors.primaryBlue, size: 36),
                     ),
                   )
                 : Container(
                     width: 80,
                     height: 90,
                     color: AppColors.softBlue,
-                    child: Icon(fallbackIcon, color: AppColors.primaryBlue, size: 36),
+                    child: Icon(fallbackIcon,
+                        color: AppColors.primaryBlue, size: 36),
                   ),
           ),
           Container(
@@ -298,7 +456,10 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
             child: Text(
               tag,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w800),
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w800),
             ),
           ),
         ],
@@ -315,14 +476,13 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
           scrollDirection: Axis.horizontal,
           itemCount: 5,
           separatorBuilder: (_, __) => const SizedBox(width: 12),
-          itemBuilder: (_, __) => const SkeletonLoader(width: 80, height: 36, borderRadius: 20),
+          itemBuilder: (_, __) =>
+              const SkeletonLoader(width: 80, height: 36, borderRadius: 20),
         ),
       );
     }
 
-    final cats = _dashboard?.categories ?? [];
-    final filters = _dashboard?.merchandise.filters ?? [];
-    final allItems = [...cats.map((c) => c.name), ...filters.where((f) => !cats.any((c) => c.name == f))];
+    final allItems = _homeCategoryItems();
 
     if (allItems.isEmpty) return const SizedBox.shrink();
 
@@ -331,7 +491,11 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Kategori', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+          const Text('Kategori',
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary)),
           const SizedBox(height: 12),
           SizedBox(
             height: 40,
@@ -340,15 +504,25 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
               itemCount: allItems.length,
               separatorBuilder: (_, __) => const SizedBox(width: 10),
               itemBuilder: (context, index) {
-                final label = allItems[index];
+                final item = allItems[index];
+                final selected = (_selectedCategoryKey ?? 'all') == item.key;
                 return GestureDetector(
-                  onTap: () => context.push('/shop/products?category=$label'),
+                  onTap: () {
+                    setState(() => _selectedCategoryKey =
+                        item.key == 'all' ? null : item.key);
+                  },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 10),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: selected ? AppColors.primaryBlue : Colors.white,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: AppColors.skyBlue, width: 1.5),
+                      border: Border.all(
+                        color: selected
+                            ? AppColors.primaryBlue
+                            : AppColors.skyBlue,
+                        width: 1.5,
+                      ),
                       boxShadow: [
                         BoxShadow(
                           color: AppColors.lightBlue.withOpacity(0.2),
@@ -358,11 +532,11 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
                       ],
                     ),
                     child: Text(
-                      label,
-                      style: const TextStyle(
+                      item.label,
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.primaryBlue,
+                        color: selected ? Colors.white : AppColors.primaryBlue,
                       ),
                     ),
                   ),
@@ -387,14 +561,14 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
           crossAxisCount: 2,
           mainAxisSpacing: 16,
           crossAxisSpacing: 16,
-          childAspectRatio: 0.72,
+          childAspectRatio: 0.62,
         ),
       ),
     );
   }
 
   Widget _buildProductGrid() {
-    final products = _dashboard?.merchandise.products ?? [];
+    final products = _filteredHomeProducts();
     if (products.isEmpty) {
       return SliverToBoxAdapter(
         child: Padding(
@@ -402,9 +576,22 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
           child: Center(
             child: Column(
               children: [
-                Icon(Icons.storefront_outlined, size: 64, color: AppColors.textSecondary.withOpacity(0.4)),
+                Icon(Icons.storefront_outlined,
+                    size: 64, color: AppColors.textSecondary.withOpacity(0.4)),
                 const SizedBox(height: 12),
-                const Text('Belum ada produk', style: TextStyle(color: AppColors.textSecondary)),
+                const Text('Tidak ada produk pada kategori ini',
+                    style: TextStyle(color: AppColors.textSecondary)),
+                const SizedBox(height: 10),
+                GestureDetector(
+                  onTap: () => context.push('/shop/products'),
+                  child: const Text(
+                    'Lihat semua produk',
+                    style: TextStyle(
+                      color: AppColors.primaryBlue,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -423,7 +610,7 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
           crossAxisCount: 2,
           mainAxisSpacing: 16,
           crossAxisSpacing: 16,
-          childAspectRatio: 0.72,
+          childAspectRatio: 0.62,
         ),
       ),
     );
@@ -448,7 +635,8 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(20)),
               child: product.imageUrl != null
                   ? CachedNetworkImage(
                       imageUrl: product.imageUrl!,
@@ -466,14 +654,18 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
                         color: AppColors.softBlue,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         product.type.toUpperCase(),
-                        style: const TextStyle(fontSize: 9, color: AppColors.primaryBlue, fontWeight: FontWeight.w700),
+                        style: const TextStyle(
+                            fontSize: 9,
+                            color: AppColors.primaryBlue,
+                            fontWeight: FontWeight.w700),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -481,27 +673,42 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
                       product.name,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                      style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary),
                     ),
                     const Spacer(),
                     Text(
                       _formatPrice(product.price),
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.primaryBlue),
+                      style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.primaryBlue),
                     ),
                     const SizedBox(height: 8),
                     Row(
                       children: [
                         Expanded(
                           child: GestureDetector(
-                            onTap: () => context.push('/shop/products/${product.id}'),
+                            onTap: () =>
+                                context.push('/shop/products/${product.id}'),
                             child: Container(
                               height: 30,
                               decoration: BoxDecoration(
-                                border: Border.all(color: AppColors.primaryBlue, width: 1.5),
+                                border: Border.all(
+                                    color: AppColors.primaryBlue, width: 1.5),
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: const Center(
-                                child: Text('Detail', style: TextStyle(fontSize: 11, color: AppColors.primaryBlue, fontWeight: FontWeight.w600)),
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text('Detail',
+                                      style: TextStyle(
+                                          fontSize: 11,
+                                          color: AppColors.primaryBlue,
+                                          fontWeight: FontWeight.w600)),
+                                ),
                               ),
                             ),
                           ),
@@ -513,13 +720,22 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
                             child: Container(
                               height: 30,
                               decoration: BoxDecoration(
-                                gradient: const LinearGradient(colors: [AppColors.primaryBlue, AppColors.midBlue]),
+                                gradient: const LinearGradient(colors: [
+                                  AppColors.primaryBlue,
+                                  AppColors.midBlue
+                                ]),
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Center(
-                                child: Text(
-                                  product.hasVariants ? 'Pilih' : 'Tambah',
-                                  style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w600),
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    product.hasVariants ? 'Pilih' : 'Tambah',
+                                    style: const TextStyle(
+                                        fontSize: 11,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600),
+                                  ),
                                 ),
                               ),
                             ),
@@ -542,7 +758,8 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
       height: 130,
       width: double.infinity,
       color: AppColors.softBlue,
-      child: const Icon(Icons.image_outlined, size: 40, color: AppColors.primaryBlue),
+      child: const Icon(Icons.image_outlined,
+          size: 40, color: AppColors.primaryBlue),
     );
   }
 
@@ -567,11 +784,14 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(ok ? '${product.name} ditambahkan ke keranjang!' : 'Stok habis!'),
+            content: Text(ok
+                ? '${product.name} ditambahkan ke keranjang!'
+                : 'Stok habis!'),
             backgroundColor: ok ? AppColors.success : Colors.red,
             duration: const Duration(seconds: 2),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         );
       }
@@ -607,7 +827,10 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
                 const Text(
                   'Have peace of mind your loved ones are safe.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700),
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 16),
                 Row(
@@ -628,10 +851,22 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
   Widget _socialStat(String value, String label) {
     return Column(
       children: [
-        Text(value, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
+        Text(value,
+            style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w900)),
         const SizedBox(height: 2),
-        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+        Text(label,
+            style: const TextStyle(color: Colors.white70, fontSize: 12)),
       ],
     );
   }
+}
+
+class _CategoryChipItem {
+  const _CategoryChipItem({required this.key, required this.label});
+
+  final String key;
+  final String label;
 }

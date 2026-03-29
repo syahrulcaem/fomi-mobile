@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/app_theme.dart';
+import '../../models/shop_dashboard_model.dart';
 import '../../models/shop_product_model.dart';
 import '../../models/cart_item_model.dart';
 import '../../services/shop_service.dart';
@@ -21,16 +22,20 @@ class ProductListScreen extends StatefulWidget {
 }
 
 class _ProductListScreenState extends State<ProductListScreen> {
+  static const double _productCardAspectRatio = 0.56;
+
   bool _loading = false;
   List<ShopProduct> _products = [];
+  List<ShopProduct> _allProducts = [];
   String? _selectedCategory;
 
-  final _categories = ['All', 'Barang', 'Hewan', 'Orang'];
+  List<String> _categories = const ['All'];
 
   @override
   void initState() {
     super.initState();
-    _selectedCategory = widget.initialCategory;
+    _selectedCategory =
+        widget.initialCategory == 'All' ? null : widget.initialCategory;
     _load();
   }
 
@@ -38,10 +43,38 @@ class _ProductListScreenState extends State<ProductListScreen> {
     setState(() => _loading = true);
     try {
       final service = context.read<ShopService>();
-      final cat = category ?? _selectedCategory;
-      final data = await service.getProducts(category: cat == 'All' ? null : cat);
+      final selected = category ?? _selectedCategory;
+      final dashboard = await service.getShopDashboard();
+      final data = await service.getProducts();
+      final merchandiseOnly =
+          data.where((p) => !_isSubscriptionProduct(p)).toList();
+
+      final builtCategories = _buildCategories(dashboard, merchandiseOnly);
+      if (selected != null && selected.isNotEmpty) {
+        builtCategories.add(selected);
+      }
+
+      final uniqueCategories = <String>{};
+      final normalizedCategories = <String>[];
+      for (final categoryLabel in builtCategories) {
+        final cleaned = categoryLabel.trim();
+        if (cleaned.isEmpty) {
+          continue;
+        }
+        final key = cleaned.toLowerCase();
+        if (uniqueCategories.add(key)) {
+          normalizedCategories.add(cleaned);
+        }
+      }
+
       if (!mounted) return;
-      setState(() => _products = data);
+      setState(() {
+        _selectedCategory = selected;
+        _allProducts = merchandiseOnly;
+        _categories =
+            normalizedCategories.isEmpty ? const ['All'] : normalizedCategories;
+        _products = _applyCategoryFilter(merchandiseOnly, selected);
+      });
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -51,6 +84,68 @@ class _ProductListScreenState extends State<ProductListScreen> {
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  List<String> _buildCategories(
+    ShopDashboardModel dashboard,
+    List<ShopProduct> products,
+  ) {
+    final labels = <String>['All'];
+    labels.addAll(dashboard.categories.map((e) => e.name));
+    labels.addAll(dashboard.merchandise.filters);
+    labels.addAll(
+      products
+          .map((p) => p.category)
+          .whereType<String>()
+          .where((value) => value.trim().isNotEmpty),
+    );
+    return labels;
+  }
+
+  List<ShopProduct> _applyCategoryFilter(
+    List<ShopProduct> products,
+    String? selected,
+  ) {
+    if (selected == null || selected.trim().isEmpty || selected == 'All') {
+      return products;
+    }
+
+    final selectedNorm = _normalizeText(selected);
+
+    return products.where((product) {
+      final candidates = <String>[
+        product.category ?? '',
+        product.type,
+        product.name,
+      ];
+
+      final hasTextMatch = candidates.any((value) {
+        final normalized = _normalizeText(value);
+        return normalized.contains(selectedNorm) ||
+            selectedNorm.contains(normalized);
+      });
+
+      if (hasTextMatch) {
+        return true;
+      }
+
+      // Alias umum agar chip "Barang" tetap bekerja untuk tipe physical.
+      if (selectedNorm == 'barang' &&
+          _normalizeText(product.type) == 'physical') {
+        return true;
+      }
+
+      return false;
+    }).toList();
+  }
+
+  String _normalizeText(String raw) {
+    return raw.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '');
+  }
+
+  bool _isSubscriptionProduct(ShopProduct product) {
+    final type = _normalizeText(product.type);
+    return type == 'digital';
   }
 
   String _formatPrice(int price) {
@@ -75,7 +170,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
             // Header
             SliverToBoxAdapter(
               child: Container(
-                decoration: const BoxDecoration(gradient: AppGradients.heroGradient),
+                decoration:
+                    const BoxDecoration(gradient: AppGradients.heroGradient),
                 padding: EdgeInsets.only(
                   top: MediaQuery.of(context).padding.top + 12,
                   left: 20,
@@ -98,7 +194,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         const SizedBox(width: 12),
                         const Text(
                           'Products',
-                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                          style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textPrimary),
                         ),
                         const Spacer(),
                         GestureDetector(
@@ -113,7 +212,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
                               builder: (context, cart, _) => Stack(
                                 clipBehavior: Clip.none,
                                 children: [
-                                  const Icon(Icons.shopping_cart_outlined, color: AppColors.primaryBlue, size: 22),
+                                  const Icon(Icons.shopping_cart_outlined,
+                                      color: AppColors.primaryBlue, size: 22),
                                   if (cart.count > 0)
                                     Positioned(
                                       right: -4,
@@ -121,8 +221,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                       child: Container(
                                         width: 14,
                                         height: 14,
-                                        decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                                        child: Center(child: Text('${cart.count}', style: const TextStyle(color: Colors.white, fontSize: 8))),
+                                        decoration: const BoxDecoration(
+                                            color: Colors.red,
+                                            shape: BoxShape.circle),
+                                        child: Center(
+                                            child: Text('${cart.count}',
+                                                style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 8))),
                                       ),
                                     ),
                                 ],
@@ -133,7 +239,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       ],
                     ),
                     const SizedBox(height: 4),
-                    const Text('Semua merchandise FOMI dalam satu tempat.', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+                    const Text('Semua merchandise FOMI dalam satu tempat.',
+                        style: TextStyle(
+                            fontSize: 13, color: AppColors.textSecondary)),
                     const SizedBox(height: 16),
                     // Filter chips
                     SizedBox(
@@ -144,24 +252,41 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         separatorBuilder: (_, __) => const SizedBox(width: 8),
                         itemBuilder: (context, index) {
                           final cat = _categories[index];
-                          final isSelected = (_selectedCategory == cat) || (cat == 'All' && _selectedCategory == null);
+                          final isSelected = (_selectedCategory == cat) ||
+                              (cat == 'All' && _selectedCategory == null);
                           return GestureDetector(
                             onTap: () {
-                              setState(() => _selectedCategory = cat == 'All' ? null : cat);
-                              _load(category: cat == 'All' ? null : cat);
+                              setState(() {
+                                _selectedCategory = cat == 'All' ? null : cat;
+                                _products = _applyCategoryFilter(
+                                  _allProducts,
+                                  _selectedCategory,
+                                );
+                              });
                             },
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 8),
                               decoration: BoxDecoration(
-                                color: isSelected ? AppColors.primaryBlue : Colors.white,
+                                color: isSelected
+                                    ? AppColors.primaryBlue
+                                    : Colors.white,
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
-                                  color: isSelected ? AppColors.primaryBlue : AppColors.skyBlue,
+                                  color: isSelected
+                                      ? AppColors.primaryBlue
+                                      : AppColors.skyBlue,
                                   width: 1.5,
                                 ),
                                 boxShadow: isSelected
-                                    ? [BoxShadow(color: AppColors.primaryBlue.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 3))]
+                                    ? [
+                                        BoxShadow(
+                                            color: AppColors.primaryBlue
+                                                .withOpacity(0.3),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 3))
+                                      ]
                                     : [],
                               ),
                               child: Text(
@@ -169,7 +294,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
-                                  color: isSelected ? Colors.white : AppColors.textSecondary,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : AppColors.textSecondary,
                                 ),
                               ),
                             ),
@@ -186,9 +313,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
               SliverPadding(
                 padding: const EdgeInsets.all(20),
                 sliver: SliverGrid(
-                  delegate: SliverChildBuilderDelegate((_, __) => const ProductCardSkeleton(), childCount: 6),
+                  delegate: SliverChildBuilderDelegate(
+                      (_, __) => const ProductCardSkeleton(),
+                      childCount: 6),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2, mainAxisSpacing: 16, crossAxisSpacing: 16, childAspectRatio: 0.72,
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                    childAspectRatio: _productCardAspectRatio,
                   ),
                 ),
               )
@@ -211,7 +343,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     childCount: _products.length,
                   ),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2, mainAxisSpacing: 16, crossAxisSpacing: 16, childAspectRatio: 0.72,
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                    childAspectRatio: _productCardAspectRatio,
                   ),
                 ),
               ),
@@ -229,54 +364,93 @@ class _ProductListScreenState extends State<ProductListScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
-          boxShadow: [BoxShadow(color: AppColors.lightBlue.withOpacity(0.25), blurRadius: 10, offset: const Offset(0, 4))],
+          boxShadow: [
+            BoxShadow(
+                color: AppColors.lightBlue.withOpacity(0.25),
+                blurRadius: 10,
+                offset: const Offset(0, 4))
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(20)),
               child: product.imageUrl != null
                   ? CachedNetworkImage(
                       imageUrl: product.imageUrl!,
-                      height: 130, width: double.infinity, fit: BoxFit.cover,
+                      height: 112,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
                       errorWidget: (_, __, ___) => _placeholder(),
                     )
                   : _placeholder(),
             ),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(color: AppColors.softBlue, borderRadius: BorderRadius.circular(8)),
-                      child: Text(product.type.toUpperCase(), style: const TextStyle(fontSize: 9, color: AppColors.primaryBlue, fontWeight: FontWeight.w700)),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                          color: AppColors.softBlue,
+                          borderRadius: BorderRadius.circular(8)),
+                      child: Text(product.type.toUpperCase(),
+                          style: const TextStyle(
+                              fontSize: 9,
+                              color: AppColors.primaryBlue,
+                              fontWeight: FontWeight.w700)),
                     ),
                     const SizedBox(height: 4),
-                    Text(product.name, maxLines: 2, overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                    Text(product.name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary)),
                     if (product.description != null)
-                      Text(product.description!, maxLines: 1, overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                      Text(product.description!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              fontSize: 11, color: AppColors.textSecondary)),
                     const Spacer(),
                     Text(_formatPrice(product.price),
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.primaryBlue)),
+                        style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.primaryBlue)),
                     const SizedBox(height: 8),
                     Row(
                       children: [
                         Expanded(
                           child: GestureDetector(
-                            onTap: () => context.push('/shop/products/${product.id}'),
+                            onTap: () =>
+                                context.push('/shop/products/${product.id}'),
                             child: Container(
                               height: 30,
                               decoration: BoxDecoration(
-                                border: Border.all(color: AppColors.primaryBlue, width: 1.5),
+                                border: Border.all(
+                                    color: AppColors.primaryBlue, width: 1.5),
                                 borderRadius: BorderRadius.circular(20),
                               ),
-                              child: const Center(child: Text('Detail', style: TextStyle(fontSize: 11, color: AppColors.primaryBlue, fontWeight: FontWeight.w600))),
+                              child: const Center(
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    'Detail',
+                                    style: TextStyle(
+                                        fontSize: 11,
+                                        color: AppColors.primaryBlue,
+                                        fontWeight: FontWeight.w600),
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -287,13 +461,22 @@ class _ProductListScreenState extends State<ProductListScreen> {
                             child: Container(
                               height: 30,
                               decoration: BoxDecoration(
-                                gradient: const LinearGradient(colors: [AppColors.primaryBlue, AppColors.midBlue]),
+                                gradient: const LinearGradient(colors: [
+                                  AppColors.primaryBlue,
+                                  AppColors.midBlue
+                                ]),
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Center(
-                                child: Text(
-                                  product.hasVariants ? 'Pilih' : 'Tambah',
-                                  style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w600),
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    product.hasVariants ? 'Pilih' : 'Tambah',
+                                    style: const TextStyle(
+                                        fontSize: 11,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600),
+                                  ),
                                 ),
                               ),
                             ),
@@ -312,8 +495,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
   }
 
   Widget _placeholder() => Container(
-        height: 130, width: double.infinity, color: AppColors.softBlue,
-        child: const Icon(Icons.image_outlined, size: 40, color: AppColors.primaryBlue),
+        height: 112,
+        width: double.infinity,
+        color: AppColors.softBlue,
+        child: const Icon(Icons.image_outlined,
+            size: 40, color: AppColors.primaryBlue),
       );
 
   void _addOrGo(ShopProduct product) {
@@ -322,9 +508,16 @@ class _ProductListScreenState extends State<ProductListScreen> {
       return;
     }
     final item = CartItemModel(
-      id: product.id, productId: product.id, cartKey: '${product.id}:base',
-      name: product.name, baseName: product.name, price: product.price,
-      imageUrl: product.imageUrl, type: product.type, stock: product.stock, quantity: 1,
+      id: product.id,
+      productId: product.id,
+      cartKey: '${product.id}:base',
+      name: product.name,
+      baseName: product.name,
+      price: product.price,
+      imageUrl: product.imageUrl,
+      type: product.type,
+      stock: product.stock,
+      quantity: 1,
     );
     context.read<CartProvider>().addToCart(item).then((ok) {
       if (mounted) {
@@ -334,7 +527,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
             backgroundColor: ok ? AppColors.success : Colors.red,
             duration: const Duration(seconds: 2),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         );
       }
