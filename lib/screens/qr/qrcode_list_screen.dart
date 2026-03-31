@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import '../../models/paginated_response.dart';
 import '../../models/qrcode_model.dart';
 import '../../services/qrcode_service.dart';
-import '../../widgets/main_shell.dart';
 
 class QrCodeListScreen extends StatefulWidget {
   const QrCodeListScreen({super.key});
@@ -60,10 +59,8 @@ class _QrCodeListScreenState extends State<QrCodeListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return MainShell(
-      currentIndex: 2,
-      child: Scaffold(
-        appBar: AppBar(title: const Text('QR Code Milikku 📱')),
+    return Scaffold(
+      appBar: AppBar(title: const Text('QR Code Milikku 📱')),
       body: Column(
         children: [
           Expanded(
@@ -196,7 +193,6 @@ class _QrCodeListScreenState extends State<QrCodeListScreen> {
             ),
           ),
         ],
-      ),
       ),
     );
   }

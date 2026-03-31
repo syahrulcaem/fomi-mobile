@@ -40,6 +40,7 @@ import 'services/profile_service.dart';
 import 'services/qrcode_service.dart';
 import 'services/renewal_service.dart';
 import 'services/shop_service.dart';
+import 'widgets/main_shell.dart';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   if (kIsWeb) return;
@@ -126,11 +127,67 @@ class _AppRouter extends StatelessWidget {
         GoRoute(path: '/splash', builder: (_, __) => const _SplashScreen()),
         GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
         GoRoute(path: '/register', builder: (_, __) => const RegisterScreen()),
-        // Dashboard (main home)
-        GoRoute(
-            path: '/dashboard', builder: (_, __) => const DashboardScreen()),
-        // Shop
-        GoRoute(path: '/shop', builder: (_, __) => const ShopHomeScreen()),
+        
+        // --- Tab Routes with Stateful Shell ---
+        StatefulShellRoute.indexedStack(
+          builder: (context, state, navigationShell) {
+            return MainShell(navigationShell: navigationShell);
+          },
+          branches: [
+            // Branch 0: Dashboard
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: '/dashboard',
+                  builder: (_, __) => const DashboardScreen(),
+                ),
+              ],
+            ),
+            // Branch 1: Shop
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: '/shop',
+                  builder: (_, __) => const ShopHomeScreen(),
+                ),
+              ],
+            ),
+            // Branch 2: Scan & QR Codes
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: '/scan',
+                  builder: (_, __) => const ScanScreen(),
+                ),
+                GoRoute(
+                  path: '/qrcodes',
+                  builder: (_, __) => const QrCodeListScreen(),
+                ),
+              ],
+            ),
+            // Branch 3: Orders
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: '/orders',
+                  builder: (_, __) => const OrderListScreen(),
+                ),
+              ],
+            ),
+            // Branch 4: Profile
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: '/profile',
+                  builder: (_, __) => const ProfileScreen(),
+                ),
+              ],
+            ),
+          ],
+        ),
+
+        // --- Other Top-Level Routes (No Bottom Nav) ---
+        // Shop Details
         GoRoute(
           path: '/shop/products',
           builder: (_, state) {
@@ -160,13 +217,8 @@ class _AppRouter extends StatelessWidget {
             orderId: state.uri.queryParameters['orderId'] ?? '',
           ),
         ),
-        // Scan / Merchandise
-        GoRoute(path: '/scan', builder: (_, __) => const ScanScreen()),
-        GoRoute(
-            path: '/merchandise',
-            builder: (_, __) => const ScanScreen()), // alias
-        // QR Codes
-        GoRoute(path: '/qrcodes', builder: (_, __) => const QrCodeListScreen()),
+
+        // QR Code Details
         GoRoute(
           path: '/qrcodes/:id',
           builder: (_, state) =>
@@ -177,16 +229,15 @@ class _AppRouter extends StatelessWidget {
           builder: (_, state) =>
               EditQrCodeScreen(assetId: state.pathParameters['id'] ?? ''),
         ),
-        // Orders
-        GoRoute(path: '/orders', builder: (_, __) => const OrderListScreen()),
+
+        // Order Details
         GoRoute(
           path: '/orders/:id',
           builder: (_, state) =>
               OrderDetailScreen(orderId: state.pathParameters['id'] ?? ''),
         ),
-        // Profile
-        GoRoute(path: '/profile', builder: (_, __) => const ProfileScreen()),
-        // Renewal (existing)
+
+        // Renewal
         GoRoute(path: '/renewal', builder: (_, __) => const RenewalScreen()),
         GoRoute(
           path: '/renewal/payment',

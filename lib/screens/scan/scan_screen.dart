@@ -8,7 +8,6 @@ import '../../models/paginated_response.dart';
 import '../../models/qrcode_model.dart';
 import '../../services/merchandise_service.dart';
 import '../../services/qrcode_service.dart';
-import '../../widgets/main_shell.dart';
 import '../../widgets/skeleton_loader.dart';
 import '../../widgets/empty_state.dart';
 import 'all_chat_sessions_screen.dart';
@@ -327,10 +326,8 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return MainShell(
-      currentIndex: 2,
-      child: Scaffold(
-        backgroundColor: AppColors.bgBlue,
+    return Scaffold(
+      backgroundColor: AppColors.bgBlue,
         body: RefreshIndicator(
           onRefresh: () => _loadItems(),
           color: AppColors.primaryBlue,
@@ -440,8 +437,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildHeader() {

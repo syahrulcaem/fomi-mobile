@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import '../../models/profile_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/profile_service.dart';
-import '../../widgets/main_shell.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -161,10 +160,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return MainShell(
-      currentIndex: 4,
-      child: Scaffold(
-        appBar: AppBar(title: const Text('Profilku 👦👧')),
+    return Scaffold(
+      appBar: AppBar(title: const Text('Profilku 👦👧')),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
@@ -319,7 +316,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 24),
               ],
             ),
-      ),
     );
   }
 

@@ -5,37 +5,24 @@ import '../core/app_theme.dart';
 import '../providers/cart_provider.dart';
 
 class MainShell extends StatelessWidget {
-  const MainShell({super.key, required this.child, required this.currentIndex});
+  const MainShell({super.key, required this.navigationShell});
 
-  final Widget child;
-  final int currentIndex;
+  final StatefulNavigationShell navigationShell;
 
   void _onTap(BuildContext context, int index) {
-    switch (index) {
-      case 0:
-        context.go('/dashboard');
-        break;
-      case 1:
-        context.go('/shop');
-        break;
-      case 2:
-        context.go('/scan');
-        break;
-      case 3:
-        context.go('/orders');
-        break;
-      case 4:
-        context.go('/profile');
-        break;
-    }
+    navigationShell.goBranch(
+      index,
+      initialLocation: index == navigationShell.currentIndex,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final cartProvider = context.watch<CartProvider>();
+    final currentIndex = navigationShell.currentIndex;
 
     return Scaffold(
-      body: child,
+      body: navigationShell,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,

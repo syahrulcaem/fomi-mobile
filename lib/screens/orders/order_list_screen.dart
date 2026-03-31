@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import '../../models/order_model.dart';
 import '../../models/paginated_response.dart';
 import '../../services/order_service.dart';
-import '../../widgets/main_shell.dart';
 
 class OrderListScreen extends StatefulWidget {
   const OrderListScreen({super.key});
@@ -60,10 +59,8 @@ class _OrderListScreenState extends State<OrderListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return MainShell(
-      currentIndex: 3,
-      child: Scaffold(
-        appBar: AppBar(title: const Text('Kiriman Pesananku 📦')),
+    return Scaffold(
+      appBar: AppBar(title: const Text('Kiriman Pesananku 📦')),
       body: Column(
         children: [
           Expanded(
@@ -190,7 +187,6 @@ class _OrderListScreenState extends State<OrderListScreen> {
             ),
           ),
         ],
-      ),
       ),
     );
   }

@@ -11,7 +11,6 @@ import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../models/cart_item_model.dart';
 import '../../widgets/skeleton_loader.dart';
-import '../../widgets/main_shell.dart';
 
 class ShopHomeScreen extends StatefulWidget {
   const ShopHomeScreen({super.key});
@@ -148,9 +147,8 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final isAuth = context.watch<AuthProvider>().isAuthenticated;
-    return MainShell(
-      currentIndex: 1,
-      child: RefreshIndicator(
+    return Scaffold(
+      body: RefreshIndicator(
         onRefresh: _load,
         color: AppColors.primaryBlue,
         child: CustomScrollView(

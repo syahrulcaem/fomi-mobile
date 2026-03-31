@@ -9,7 +9,6 @@ import '../../models/dashboard_model.dart';
 import '../../models/order_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/dashboard_service.dart';
-import '../../widgets/main_shell.dart';
 import '../../widgets/skeleton_loader.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -62,10 +61,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final auth = context.watch<AuthProvider>();
     final stats = _dashboard?.stats;
 
-    return MainShell(
-      currentIndex: 0,
-      child: Scaffold(
-        backgroundColor: AppColors.bgBlue,
+    return Scaffold(
+      backgroundColor: AppColors.bgBlue,
         body: RefreshIndicator(
           onRefresh: _load,
           color: AppColors.primaryBlue,
@@ -109,8 +106,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 
   // ────────────────────────────────────────────
