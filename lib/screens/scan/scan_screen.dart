@@ -328,116 +328,116 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.bgBlue,
-        body: RefreshIndicator(
-          onRefresh: () => _loadItems(),
-          color: AppColors.primaryBlue,
-          child: CustomScrollView(
-            slivers: [
-              // Header
-              SliverToBoxAdapter(child: _buildHeader()),
-              // Scanner Card
-              SliverToBoxAdapter(child: _buildScanCard()),
-              // Result
-              if (_result != null) SliverToBoxAdapter(child: _buildResult()),
-              // Koleksi header
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 28, 20, 12),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          const Text('Koleksiku ',
-                              style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.textPrimary)),
-                          const SizedBox(width: 8),
-                          OutlinedButton.icon(
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute<void>(
-                                  builder: (_) => const AllChatSessionsScreen(),
-                                ),
-                              );
-                            },
-                            icon: const Icon(Icons.forum_outlined, size: 16),
-                            label: const Text('Semua Sesi'),
-                            style: OutlinedButton.styleFrom(
-                              visualDensity: VisualDensity.compact,
-                              minimumSize: const Size(10, 34),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 6,
+      body: RefreshIndicator(
+        onRefresh: () => _loadItems(),
+        color: AppColors.primaryBlue,
+        child: CustomScrollView(
+          slivers: [
+            // Header
+            SliverToBoxAdapter(child: _buildHeader()),
+            // Scanner Card
+            SliverToBoxAdapter(child: _buildScanCard()),
+            // Result
+            if (_result != null) SliverToBoxAdapter(child: _buildResult()),
+            // Koleksi header
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 28, 20, 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Text('Koleksiku ',
+                            style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textPrimary)),
+                        const SizedBox(width: 8),
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => const AllChatSessionsScreen(),
                               ),
+                            );
+                          },
+                          icon: const Icon(Icons.forum_outlined, size: 16),
+                          label: const Text('Semua Sesi'),
+                          style: OutlinedButton.styleFrom(
+                            visualDensity: VisualDensity.compact,
+                            minimumSize: const Size(10, 34),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
                             ),
                           ),
-                        ],
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppColors.softBlue,
-                          borderRadius: BorderRadius.circular(10),
                         ),
-                        child: Text(
-                          '${_items.total} item',
-                          style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.primaryBlue,
-                              fontWeight: FontWeight.w600),
-                        ),
+                      ],
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.softBlue,
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                    ],
-                  ),
+                      child: Text(
+                        '${_items.total} item',
+                        style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.primaryBlue,
+                            fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              // Koleksi list
-              _loadingItems
-                  ? SliverPadding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (_, __) => const Padding(
-                            padding: EdgeInsets.only(bottom: 12),
-                            child: SkeletonLoader(
-                                width: double.infinity,
-                                height: 72,
-                                borderRadius: 16),
+            ),
+            // Koleksi list
+            _loadingItems
+                ? SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (_, __) => const Padding(
+                          padding: EdgeInsets.only(bottom: 12),
+                          child: SkeletonLoader(
+                              width: double.infinity,
+                              height: 72,
+                              borderRadius: 16),
+                        ),
+                        childCount: 4,
+                      ),
+                    ),
+                  )
+                : _items.items.isEmpty
+                    ? const SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: EmptyState(
+                          icon: Icons.qr_code_2_outlined,
+                          title: 'Belum ada koleksi',
+                          subtitle: 'Belum ada QR Code milikmu.',
+                        ),
+                      )
+                    : SliverPadding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        sliver: SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) =>
+                                _buildItemCard(_items.items[index]),
+                            childCount: _items.items.length,
                           ),
-                          childCount: 4,
                         ),
                       ),
-                    )
-                  : _items.items.isEmpty
-                      ? const SliverFillRemaining(
-                          hasScrollBody: false,
-                          child: EmptyState(
-                            icon: Icons.qr_code_2_outlined,
-                            title: 'Belum ada koleksi',
-                            subtitle: 'Belum ada QR Code milikmu.',
-                          ),
-                        )
-                      : SliverPadding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          sliver: SliverList(
-                            delegate: SliverChildBuilderDelegate(
-                              (context, index) =>
-                                  _buildItemCard(_items.items[index]),
-                              childCount: _items.items.length,
-                            ),
-                          ),
-                        ),
-              // Pagination
-              if (_items.lastPage > 1)
-                SliverToBoxAdapter(child: _buildPagination()),
-              const SliverToBoxAdapter(child: SizedBox(height: 100)),
-            ],
-          ),
+            // Pagination
+            if (_items.lastPage > 1)
+              SliverToBoxAdapter(child: _buildPagination()),
+            const SliverToBoxAdapter(child: SizedBox(height: 100)),
+          ],
         ),
-      );
+      ),
+    );
   }
 
   Widget _buildHeader() {
@@ -812,7 +812,3 @@ class _ScanResult {
   final bool success;
   final String message;
 }
-
-
-
-

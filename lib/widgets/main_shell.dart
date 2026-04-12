@@ -73,7 +73,10 @@ class MainShell extends StatelessWidget {
                           child: Center(
                             child: Text(
                               '${cartProvider.count}',
-                              style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold),
                             ),
                           ),
                         ),
@@ -98,7 +101,10 @@ class MainShell extends StatelessWidget {
                           child: Center(
                             child: Text(
                               '${cartProvider.count}',
-                              style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold),
                             ),
                           ),
                         ),
@@ -129,4 +135,3 @@ class MainShell extends StatelessWidget {
     );
   }
 }
-

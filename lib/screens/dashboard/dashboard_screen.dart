@@ -847,6 +847,3 @@ class _QuickLink {
   final String route;
   final Color color;
 }
-
-
-
