@@ -23,6 +23,7 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
   bool _loading = true;
   ShopDashboardModel? _dashboard;
   String? _selectedCategoryKey;
+  List<ShopProduct> _homeProducts = const [];
 
   @override
   void initState() {
@@ -34,9 +35,23 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
     setState(() => _loading = true);
     try {
       final service = context.read<ShopService>();
-      final data = await service.getShopDashboard();
+      final results = await Future.wait<dynamic>([
+        service.getShopDashboard(),
+        service.getProducts(),
+      ]);
+
+      final data = results[0] as ShopDashboardModel;
+      final products = results[1] as List<ShopProduct>;
+      final mergedProducts = _mergeUniqueProducts(
+        data.merchandise.products,
+        products,
+      );
+
       if (!mounted) return;
-      setState(() => _dashboard = data);
+      setState(() {
+        _dashboard = data;
+        _homeProducts = mergedProducts;
+      });
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -56,13 +71,6 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
       buf.write(str[i]);
     }
     return 'Rp ${buf.toString()}';
-  }
-
-  String _buildCategoryRoute(String label) {
-    return Uri(
-      path: '/shop/products',
-      queryParameters: {'category': label},
-    ).toString();
   }
 
   String _normalizeText(String raw) {
@@ -132,7 +140,9 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
   }
 
   List<ShopProduct> _filteredHomeProducts() {
-    final products = _dashboard?.merchandise.products ?? const <ShopProduct>[];
+    final products = _homeProducts.isNotEmpty
+        ? _homeProducts
+        : (_dashboard?.merchandise.products ?? const <ShopProduct>[]);
     final selectedKey = _selectedCategoryKey;
 
     if (selectedKey == null || selectedKey.isEmpty || selectedKey == 'all') {
@@ -142,6 +152,29 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
     return products
         .where((product) => _matchesCategory(product, selectedKey))
         .toList();
+  }
+
+  List<ShopProduct> _mergeUniqueProducts(
+    List<ShopProduct> fromDashboard,
+    List<ShopProduct> fromProductsEndpoint,
+  ) {
+    final merged = <ShopProduct>[];
+    final seen = <String>{};
+
+    void appendAll(List<ShopProduct> source) {
+      for (final product in source) {
+        final id = product.id.trim();
+        if (id.isEmpty || !seen.add(id)) {
+          continue;
+        }
+        merged.add(product);
+      }
+    }
+
+    appendAll(fromDashboard);
+    appendAll(fromProductsEndpoint);
+
+    return merged;
   }
 
   @override
@@ -381,12 +414,11 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: AppColors.skyBlue, width: 1.5),
         ),
-        child: Row(
+        child: const Row(
           children: [
-            const Icon(Icons.login_rounded,
-                color: AppColors.primaryBlue, size: 20),
-            const SizedBox(width: 10),
-            const Expanded(
+            Icon(Icons.login_rounded, color: AppColors.primaryBlue, size: 20),
+            SizedBox(width: 10),
+            Expanded(
               child: Text(
                 'Masuk untuk akses keranjang & checkout',
                 style: TextStyle(
@@ -395,7 +427,7 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
                     fontWeight: FontWeight.w600),
               ),
             ),
-            const Icon(Icons.arrow_forward_ios_rounded,
+            Icon(Icons.arrow_forward_ios_rounded,
                 size: 12, color: AppColors.primaryBlue),
           ],
         ),
@@ -848,29 +880,55 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
   }
 
   Widget _buildProductTypeBadge(String type) {
-    final isPhysical = type == 'physical';
+    final normalizedType = _normalizeText(type);
+    final isPhysical = normalizedType == 'physical';
+    final isDigital = normalizedType == 'digital';
+
+    final label = isPhysical
+        ? 'FISIK'
+        : isDigital
+            ? 'DIGITAL'
+            : (type.trim().isNotEmpty ? type.trim().toUpperCase() : 'PRODUK');
+
+    final backgroundColor = isPhysical
+        ? AppColors.softBlue
+        : isDigital
+            ? const Color(0xFFE8F5E9)
+            : const Color(0xFFF1F5F9);
+
+    final foregroundColor = isPhysical
+        ? AppColors.primaryBlue
+        : isDigital
+            ? const Color(0xFF2E7D32)
+            : const Color(0xFF475569);
+
+    final icon = isPhysical
+        ? Icons.local_shipping_outlined
+        : isDigital
+            ? Icons.bolt_rounded
+            : Icons.sell_outlined;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: isPhysical ? AppColors.softBlue : const Color(0xFFE8F5E9),
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            isPhysical ? Icons.local_shipping_outlined : Icons.bolt_rounded,
+            icon,
             size: 9,
-            color: isPhysical ? AppColors.primaryBlue : const Color(0xFF2E7D32),
+            color: foregroundColor,
           ),
           const SizedBox(width: 3),
           Text(
-            isPhysical ? 'FISIK' : 'DIGITAL',
+            label,
             style: TextStyle(
               fontSize: 9,
               fontWeight: FontWeight.w700,
-              color:
-                  isPhysical ? AppColors.primaryBlue : const Color(0xFF2E7D32),
+              color: foregroundColor,
             ),
           ),
         ],

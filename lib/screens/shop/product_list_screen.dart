@@ -145,7 +145,31 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   bool _isSubscriptionProduct(ShopProduct product) {
     final type = _normalizeText(product.type);
-    return type == 'digital';
+    final category = _normalizeText(product.category ?? '');
+    final name = _normalizeText(product.name);
+
+    if (type == 'subscription' || type == 'plan' || type == 'package') {
+      return true;
+    }
+
+    final hints = <String>[category, name];
+    final hasSubscriptionHint = hints.any(
+      (text) => text.contains('subscription') || text.contains('langganan'),
+    );
+    if (hasSubscriptionHint) {
+      return true;
+    }
+
+    // Legacy safeguard: some package products are still sent as digital
+    // with package-like naming.
+    if (type == 'digital') {
+      final hasPackageHint = hints.any((text) => text.contains('paket'));
+      if (hasPackageHint) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   String _formatPrice(int price) {

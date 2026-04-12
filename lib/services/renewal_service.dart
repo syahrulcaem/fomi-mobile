@@ -1,5 +1,8 @@
+import 'package:dio/dio.dart';
+
 import '../core/api_client.dart';
 import '../models/checkout_result_model.dart';
+import '../models/checkout_unified_request_model.dart';
 import '../models/renewal_package_model.dart';
 
 class RenewalService {
@@ -40,7 +43,56 @@ class RenewalService {
     String? customerName,
     String? customerEmail,
     String? customerPhone,
+    String paymentMethod = 'midtrans',
+    String? paymentBankName,
+    String? paymentSenderName,
+    List<int>? paymentProofBytes,
+    String? paymentProofFileName,
   }) async {
+    final request = CheckoutUnifiedRequest(
+      items: [
+        CheckoutItemPayload(
+          productId: productId,
+          quantity: quantity,
+        ),
+      ],
+      paymentMethod: paymentMethod,
+      renewalAssetId: renewalAssetId,
+      customerName: customerName,
+      customerEmail: customerEmail,
+      customerPhone: customerPhone,
+      paymentBankName: paymentBankName,
+      paymentSenderName: paymentSenderName,
+      paymentProofBytes: paymentProofBytes,
+      paymentProofFileName: paymentProofFileName,
+    );
+
+    final response = await _apiClient.dio.post(
+      '/user/shop/checkout',
+      data: request.isBankTransfer
+          ? request.toMultipartFormData()
+          : request.toJson(),
+      options: request.isBankTransfer
+          ? Options(contentType: 'multipart/form-data')
+          : null,
+    );
+
+    if (response.data is Map<String, dynamic>) {
+      return CheckoutResultModel.fromJson(
+          response.data as Map<String, dynamic>);
+    }
+    return CheckoutResultModel.fromJson(const {});
+  }
+
+  Future<CheckoutResultModel> checkoutRenewalLegacy({
+    required String productId,
+    int quantity = 1,
+    String? renewalAssetId,
+    String? customerName,
+    String? customerEmail,
+    String? customerPhone,
+  }) async {
+    // TODO(cleanup): Remove this legacy endpoint after all screens migrate.
     final response = await _apiClient.dio.post(
       '/user/renewal/checkout',
       data: {
@@ -55,7 +107,8 @@ class RenewalService {
 
     if (response.data is Map<String, dynamic>) {
       return CheckoutResultModel.fromJson(
-          response.data as Map<String, dynamic>);
+        response.data as Map<String, dynamic>,
+      );
     }
     return CheckoutResultModel.fromJson(const {});
   }

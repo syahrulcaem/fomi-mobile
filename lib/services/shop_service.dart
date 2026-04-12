@@ -1,4 +1,10 @@
+import 'package:dio/dio.dart';
+
 import '../core/api_client.dart';
+import '../models/checkout_address_model.dart';
+import '../models/checkout_context_model.dart';
+import '../models/checkout_result_model.dart';
+import '../models/checkout_unified_request_model.dart';
 import '../models/shop_dashboard_model.dart';
 import '../models/shop_product_model.dart';
 
@@ -50,6 +56,65 @@ class ShopService {
     return {};
   }
 
+  Future<CheckoutContextModel> getCheckoutContextModel() async {
+    final raw = await getCheckoutContext();
+    return CheckoutContextModel.fromJson(raw);
+  }
+
+  Future<List<CheckoutAddressModel>> getCheckoutAddresses() async {
+    final response = await _apiClient.dio.get('/user/shop/checkout/addresses');
+    final data = response.data;
+
+    if (data is List) {
+      return data
+          .whereType<Map<String, dynamic>>()
+          .map(CheckoutAddressModel.fromJson)
+          .where((item) => item.id.isNotEmpty)
+          .toList();
+    }
+
+    if (data is Map<String, dynamic>) {
+      final list = data['data'] is List
+          ? data['data'] as List
+          : data['addresses'] is List
+              ? data['addresses'] as List
+              : const <dynamic>[];
+
+      return list
+          .whereType<Map<String, dynamic>>()
+          .map(CheckoutAddressModel.fromJson)
+          .where((item) => item.id.isNotEmpty)
+          .toList();
+    }
+
+    return const [];
+  }
+
+  Future<CheckoutAddressModel?> createCheckoutAddress(
+    CheckoutAddressCreateRequest request,
+  ) async {
+    final response = await _apiClient.dio.post(
+      '/user/shop/checkout/addresses',
+      data: request.toJson(),
+    );
+
+    final data = response.data;
+    if (data is Map<String, dynamic>) {
+      final payload = data['data'] is Map<String, dynamic>
+          ? data['data'] as Map<String, dynamic>
+          : data['address'] is Map<String, dynamic>
+              ? data['address'] as Map<String, dynamic>
+              : data;
+      return CheckoutAddressModel.fromJson(payload);
+    }
+
+    return null;
+  }
+
+  Future<void> deleteCheckoutAddress(String addressId) async {
+    await _apiClient.dio.delete('/user/shop/checkout/addresses/$addressId');
+  }
+
   /// Calculate shipping cost via backend (RajaOngkir proxy).
   /// [regencyId] destination regency id, [courier] e.g. 'jne', 'j&t'.
   Future<dynamic> getShippingCosts({
@@ -72,6 +137,28 @@ class ShopService {
       return response.data as Map<String, dynamic>;
     }
     return {};
+  }
+
+  Future<CheckoutResultModel> checkoutUnified(
+    CheckoutUnifiedRequest request,
+  ) async {
+    final payload = request.isBankTransfer
+        ? request.toMultipartFormData()
+        : request.toJson();
+
+    final response = await _apiClient.dio.post(
+      '/user/shop/checkout',
+      data: payload,
+      options: request.isBankTransfer
+          ? Options(contentType: 'multipart/form-data')
+          : null,
+    );
+
+    if (response.data is Map<String, dynamic>) {
+      return CheckoutResultModel.fromJson(
+          response.data as Map<String, dynamic>);
+    }
+    return CheckoutResultModel.fromJson(const {});
   }
 
   Future<Map<String, dynamic>> checkMidtransStatus(String orderId) async {

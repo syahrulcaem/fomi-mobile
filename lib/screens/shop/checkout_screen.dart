@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
 
 import '../../core/app_theme.dart';
+import '../../models/checkout_address_model.dart';
 import '../../providers/cart_provider.dart';
 import '../../services/shop_service.dart';
 
@@ -65,6 +66,18 @@ class _SavedAddress {
         districtName: j['district_name']?.toString(),
       );
 
+  factory _SavedAddress.fromModel(CheckoutAddressModel model) => _SavedAddress(
+        id: model.id,
+        label: model.label,
+        address: model.shippingAddress,
+        province: model.provinceName,
+        city: model.regencyName,
+        postalCode: model.shippingPostalCode,
+        regencyId: model.regencyId ?? 0,
+        districtId: model.districtId,
+        districtName: model.districtName,
+      );
+
   String get fullDisplay => '$address, $city, $province $postalCode';
 }
 
@@ -113,7 +126,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   List<String> _availableCouriers = [];
   int? _regencyId;
   int? _districtId;
-  String? _districtName;
 
   // ── selections ──
   _QrAsset? _selectedQr;
@@ -130,9 +142,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   bool _paying = false;
 
   // ── helpers ──
-  bool get _hasPhysical =>
-      context.read<CartProvider>().items.any((e) => e.type == 'physical');
-
   String _fmt(int price) {
     final s = price.toString();
     final buf = StringBuffer();
@@ -261,25 +270,30 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         if (_qrAssets.length == 1) _selectedQr = _qrAssets.first;
       }
 
-      // Saved addresses
-      final addrRaw = ctx['saved_addresses'];
-      if (addrRaw is List) {
-        _savedAddresses = addrRaw
-            .whereType<Map<String, dynamic>>()
-            .map(_SavedAddress.fromJson)
-            .toList();
-        // Auto-apply if exactly one saved address
-        if (_savedAddresses.length == 1) {
-          final a = _savedAddresses.first;
-          _selectedSavedAddress = a;
-          _addressCtrl.text = a.address;
-          _provinceCtrl.text = a.province;
-          _cityCtrl.text = a.city;
-          _postalCtrl.text = a.postalCode;
-          _regencyId = a.regencyId;
-          _districtId = a.districtId;
-          _districtName = a.districtName;
+      // Saved addresses (new endpoint first, then context fallback)
+      final addressList = await svc.getCheckoutAddresses();
+      if (addressList.isNotEmpty) {
+        _savedAddresses = addressList.map(_SavedAddress.fromModel).toList();
+      } else {
+        final addrRaw = ctx['saved_addresses'];
+        if (addrRaw is List) {
+          _savedAddresses = addrRaw
+              .whereType<Map<String, dynamic>>()
+              .map(_SavedAddress.fromJson)
+              .toList();
         }
+      }
+
+      // Auto-apply if exactly one saved address
+      if (_savedAddresses.length == 1) {
+        final a = _savedAddresses.first;
+        _selectedSavedAddress = a;
+        _addressCtrl.text = a.address;
+        _provinceCtrl.text = a.province;
+        _cityCtrl.text = a.city;
+        _postalCtrl.text = a.postalCode;
+        _regencyId = a.regencyId;
+        _districtId = a.districtId;
       }
 
       // Available couriers
@@ -893,7 +907,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       _postalCtrl.text = addr.postalCode;
       _regencyId = addr.regencyId;
       _districtId = addr.districtId;
-      _districtName = addr.districtName;
     });
   }
 

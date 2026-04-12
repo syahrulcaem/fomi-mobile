@@ -75,6 +75,21 @@ class ShopProduct {
 
   factory ShopProduct.fromJson(Map<String, dynamic> json) {
     final rawVariants = json['variants'];
+    final rawCategory = json['category'];
+
+    String? categoryValue;
+    if (rawCategory is Map<String, dynamic>) {
+      categoryValue = rawCategory['name']?.toString();
+    } else {
+      categoryValue = rawCategory?.toString();
+    }
+
+    final normalizedType = _normalizeProductType(
+      primaryType: json['type']?.toString(),
+      secondaryType: json['product_type']?.toString(),
+      categoryHint: categoryValue,
+    );
+
     final List<ProductVariant> variantList = rawVariants is List
         ? rawVariants
             .whereType<Map<String, dynamic>>()
@@ -90,12 +105,34 @@ class ShopProduct {
       price: (json['price'] as num?)?.toInt() ?? 0,
       stock: (json['stock'] as num?)?.toInt() ?? 0,
       imageUrl: json['image_url']?.toString(),
-      type: json['type']?.toString() ?? 'physical',
+      type: normalizedType,
       durationDays: (json['duration_days'] as num?)?.toInt(),
       isActive: json['is_active'] == true,
       variants: variantList,
       categoryId: json['category_id']?.toString(),
-      category: json['category']?.toString(),
+      category: categoryValue,
     );
+  }
+
+  static String _normalizeProductType({
+    String? primaryType,
+    String? secondaryType,
+    String? categoryHint,
+  }) {
+    final candidates = <String?>[primaryType, secondaryType, categoryHint];
+
+    for (final candidate in candidates) {
+      if (candidate == null) {
+        continue;
+      }
+
+      final normalized = candidate.trim().toLowerCase();
+      if (normalized == 'physical' || normalized == 'digital') {
+        return normalized;
+      }
+    }
+
+    final fallback = primaryType?.trim() ?? '';
+    return fallback.toLowerCase();
   }
 }
