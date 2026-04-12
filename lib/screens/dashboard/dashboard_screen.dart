@@ -63,50 +63,50 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.bgBlue,
-        body: RefreshIndicator(
-          onRefresh: _load,
-          color: AppColors.primaryBlue,
-          child: CustomScrollView(
-            slivers: [
-              // ── Gradient Header ──
-              SliverToBoxAdapter(child: _buildHeader(auth)),
+      body: RefreshIndicator(
+        onRefresh: _load,
+        color: AppColors.primaryBlue,
+        child: CustomScrollView(
+          slivers: [
+            // ── Gradient Header ──
+            SliverToBoxAdapter(child: _buildHeader(auth)),
 
-              // ── Stats Row ──
-              if (_loading)
-                SliverToBoxAdapter(child: _buildStatsSkeletons())
-              else if (_error == null)
-                SliverToBoxAdapter(child: _buildStats(stats)),
+            // ── Stats Row ──
+            if (_loading)
+              SliverToBoxAdapter(child: _buildStatsSkeletons())
+            else if (_error == null)
+              SliverToBoxAdapter(child: _buildStats(stats)),
 
-              // ── Error ──
-              if (_error != null && !_loading)
-                SliverToBoxAdapter(child: _buildError()),
+            // ── Error ──
+            if (_error != null && !_loading)
+              SliverToBoxAdapter(child: _buildError()),
 
-              // ── Primary CTA: Scan Merchandise ──
-              SliverToBoxAdapter(child: _buildScanCta()),
+            // ── Primary CTA: Scan Merchandise ──
+            SliverToBoxAdapter(child: _buildScanCta()),
 
-              // ── QR Codes Quick Access ──
-              SliverToBoxAdapter(
-                  child: _buildSectionHeader('QR Code Milikku 📱', '/qrcodes')),
-              SliverToBoxAdapter(child: _buildQrScroll()),
+            // ── QR Codes Quick Access ──
+            SliverToBoxAdapter(
+                child: _buildSectionHeader('QR Code Milikku 📱', '/qrcodes')),
+            SliverToBoxAdapter(child: _buildQrScroll()),
 
-              // ── Recent Items ──
-              SliverToBoxAdapter(
-                  child: _buildSectionHeader('Barang Terbaru 📦', '/qrcodes')),
-              _buildRecentItems(),
+            // ── Recent Items ──
+            SliverToBoxAdapter(
+                child: _buildSectionHeader('Barang Terbaru 📦', '/qrcodes')),
+            _buildRecentItems(),
 
-              // ── Recent Orders ──
-              SliverToBoxAdapter(
-                  child: _buildSectionHeader('Pesanan Terkini 🚚', '/orders')),
-              _buildRecentOrders(),
+            // ── Recent Orders ──
+            SliverToBoxAdapter(
+                child: _buildSectionHeader('Pesanan Terkini 🚚', '/orders')),
+            _buildRecentOrders(),
 
-              // ── Quick Links ──
-              SliverToBoxAdapter(child: _buildQuickLinks()),
+            // ── Quick Links ──
+            SliverToBoxAdapter(child: _buildQuickLinks()),
 
-              const SliverToBoxAdapter(child: SizedBox(height: 100)),
-            ],
-          ),
+            const SliverToBoxAdapter(child: SizedBox(height: 100)),
+          ],
         ),
-      );
+      ),
+    );
   }
 
   // ────────────────────────────────────────────
@@ -763,12 +763,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildQuickLinks() {
     final links = [
-      _QuickLink('Pesananku', Icons.receipt_long_outlined, '/orders',
+      const _QuickLink('Pesananku', Icons.receipt_long_outlined, '/orders',
           AppColors.primaryBlue),
-      _QuickLink(
+      const _QuickLink(
           'Langganan', Icons.stars_rounded, '/renewal', AppColors.success),
-      _QuickLink(
-          'QR Codes', Icons.qr_code_2, '/qrcodes', const Color(0xFF8B5CF6)),
+      const _QuickLink(
+          'QR Codes', Icons.qr_code_2, '/qrcodes', Color(0xFF8B5CF6)),
+      const _QuickLink('Produk Digital', Icons.download_rounded,
+          '/digital-products', Color(0xFF0EA5E9)),
     ];
 
     return Padding(

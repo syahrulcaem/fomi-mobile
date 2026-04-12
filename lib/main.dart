@@ -29,6 +29,7 @@ import 'screens/shop/checkout_screen.dart';
 import 'screens/shop/subscription_screen.dart';
 import 'screens/shop/order_success_screen.dart';
 import 'screens/shop/shop_payment_screen.dart';
+import 'screens/shop/digital_products_screen.dart';
 import 'screens/scan/scan_screen.dart';
 import 'services/auth_service.dart';
 import 'services/cart_service.dart';
@@ -119,15 +120,16 @@ class _AppRouter extends StatelessWidget {
           if (path == '/cart' || path == '/checkout') return '/login';
           return '/login';
         }
-        if (!isLoading && isAuth && (isAuthPath || path == '/splash'))
+        if (!isLoading && isAuth && (isAuthPath || path == '/splash')) {
           return '/dashboard';
+        }
         return null;
       },
       routes: [
         GoRoute(path: '/splash', builder: (_, __) => const _SplashScreen()),
         GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
         GoRoute(path: '/register', builder: (_, __) => const RegisterScreen()),
-        
+
         // --- Tab Routes with Stateful Shell ---
         StatefulShellRoute.indexedStack(
           builder: (context, state, navigationShell) {
@@ -216,6 +218,10 @@ class _AppRouter extends StatelessWidget {
             snapUrl: state.uri.queryParameters['snapUrl'] ?? '',
             orderId: state.uri.queryParameters['orderId'] ?? '',
           ),
+        ),
+        GoRoute(
+          path: '/digital-products',
+          builder: (_, __) => const DigitalProductsScreen(),
         ),
 
         // QR Code Details

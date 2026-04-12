@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 
 import '../core/api_client.dart';
@@ -5,6 +7,7 @@ import '../models/checkout_address_model.dart';
 import '../models/checkout_context_model.dart';
 import '../models/checkout_result_model.dart';
 import '../models/checkout_unified_request_model.dart';
+import '../models/digital_product_model.dart';
 import '../models/shop_dashboard_model.dart';
 import '../models/shop_product_model.dart';
 
@@ -159,6 +162,62 @@ class ShopService {
           response.data as Map<String, dynamic>);
     }
     return CheckoutResultModel.fromJson(const {});
+  }
+
+  Future<UserDigitalProductsResponse> getUserDigitalProducts() async {
+    final response = await _apiClient.dio.get('/user/digital-products');
+    if (response.data is Map<String, dynamic>) {
+      return UserDigitalProductsResponse.fromJson(
+        response.data as Map<String, dynamic>,
+      );
+    }
+    return UserDigitalProductsResponse.fromJson(const {});
+  }
+
+  Future<Uint8List> getUserDigitalProductPreview({
+    required String productId,
+    String? assetId,
+  }) async {
+    return _getDigitalProductImageBytes(
+      path: '/user/digital-products/$productId/preview',
+      assetId: assetId,
+    );
+  }
+
+  Future<Uint8List> getUserDigitalProductDownload({
+    required String productId,
+    String? assetId,
+  }) async {
+    return _getDigitalProductImageBytes(
+      path: '/user/digital-products/$productId/download',
+      assetId: assetId,
+    );
+  }
+
+  Future<Uint8List> _getDigitalProductImageBytes({
+    required String path,
+    String? assetId,
+  }) async {
+    final response = await _apiClient.dio.get<dynamic>(
+      path,
+      queryParameters: {
+        if (assetId != null && assetId.trim().isNotEmpty) 'asset_id': assetId,
+      },
+      options: Options(responseType: ResponseType.bytes),
+    );
+
+    final body = response.data;
+    if (body is Uint8List) {
+      return body;
+    }
+    if (body is List<int>) {
+      return Uint8List.fromList(body);
+    }
+    if (body is List) {
+      return Uint8List.fromList(body.cast<int>());
+    }
+
+    return Uint8List(0);
   }
 
   Future<Map<String, dynamic>> checkMidtransStatus(String orderId) async {
