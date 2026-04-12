@@ -152,6 +152,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return 'Rp ${buf.toString()}';
   }
 
+  bool _isPhysicalType(String type) {
+    return type.trim().toLowerCase() == 'physical';
+  }
+
+  bool _hasPhysicalProducts(CartProvider cart) {
+    return cart.items.any((item) => _isPhysicalType(item.type));
+  }
+
+  bool _hasDigitalProducts(CartProvider cart) {
+    return cart.items.any((item) => !_isPhysicalType(item.type));
+  }
+
   List<dynamic> _extractShippingRows(dynamic raw) {
     if (raw is List) {
       return raw;
@@ -344,11 +356,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Future<void> _pay() async {
+    final cart = context.read<CartProvider>();
+    final hasPhysical = _hasPhysicalProducts(cart);
+    final hasDigital = _hasDigitalProducts(cart);
+    final needsQrSelection = hasPhysical || hasDigital;
+
+    if (needsQrSelection && _selectedQr == null) {
+      _showError('Pilih QR asset terlebih dahulu untuk checkout.');
+      return;
+    }
+
     setState(() => _paying = true);
     try {
-      final cart = context.read<CartProvider>();
-      final hasPhysical = cart.items.any((e) => e.type == 'physical');
-
       final data = <String, dynamic>{
         'items': cart.items
             .map((e) => {
@@ -360,10 +379,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         'customer_name': _nameCtrl.text.trim(),
         'customer_email': _emailCtrl.text.trim(),
         'customer_phone': _phoneCtrl.text.trim(),
+        if (needsQrSelection) 'selected_asset_id': _selectedQr!.id,
       };
 
       if (hasPhysical) {
-        data['selected_asset_id'] = _selectedQr!.id;
         data['shipping_address'] = _addressCtrl.text.trim();
         data['shipping_city'] = _cityCtrl.text.trim();
         data['shipping_province'] = _provinceCtrl.text.trim();
@@ -379,11 +398,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       final result = await svc.checkout(data);
       if (!mounted) return;
 
-      final redirectUrl = result['redirect_url']?.toString() ?? '';
-      final orderId = (result['order'] as Map?)?['payment']
-                  ?['midtrans_order_id']
-              ?.toString() ??
-          '';
+      final redirectUrl = _extractCheckoutRedirectUrl(result);
+      final orderId = _extractCheckoutOrderId(result);
 
       if (redirectUrl.isNotEmpty) {
         context.push(
@@ -415,27 +431,65 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
+  String _extractCheckoutRedirectUrl(Map<String, dynamic> result) {
+    final order = result['order'];
+    final orderMap = order is Map ? Map<String, dynamic>.from(order) : null;
+    final payment = orderMap?['payment'];
+    final paymentMap =
+        payment is Map ? Map<String, dynamic>.from(payment) : null;
+
+    return result['redirect_url']?.toString() ??
+        result['snap_url']?.toString() ??
+        paymentMap?['redirect_url']?.toString() ??
+        paymentMap?['snap_url']?.toString() ??
+        '';
+  }
+
+  String _extractCheckoutOrderId(Map<String, dynamic> result) {
+    final order = result['order'];
+    final orderMap = order is Map ? Map<String, dynamic>.from(order) : null;
+    final payment = orderMap?['payment'];
+    final paymentMap =
+        payment is Map ? Map<String, dynamic>.from(payment) : null;
+
+    return paymentMap?['midtrans_order_id']?.toString() ??
+        result['order_id']?.toString() ??
+        result['transaction_id']?.toString() ??
+        orderMap?['order_id']?.toString() ??
+        orderMap?['id']?.toString() ??
+        '';
+  }
+
   // ─── navigation ──────────────────────────────────────────────────────────
 
   void _next() {
-    final hasPhysical =
-        context.read<CartProvider>().items.any((e) => e.type == 'physical');
+    final cart = context.read<CartProvider>();
+    final hasPhysical = _hasPhysicalProducts(cart);
+    final hasDigital = _hasDigitalProducts(cart);
+    final needsQrSelection = hasPhysical || hasDigital;
 
     if (_step == 0) {
       if (!_formKey.currentState!.validate()) return;
-      // If no physical products: skip steps 1,2 → go straight to review
+
+      // Digital-only checkout: user must choose QR first.
       if (!hasPhysical) {
-        setState(() => _step = 3);
+        setState(() => _step = 1);
         return;
       }
     }
 
     if (_step == 1) {
       // Validate QR
-      if (hasPhysical && _selectedQr == null) {
+      if (needsQrSelection && _selectedQr == null) {
         _showError('Pilih QR asset yang ingin ditampilkan.');
         return;
       }
+
+      if (!hasPhysical) {
+        setState(() => _step = 3);
+        return;
+      }
+
       // Validate address fields
       if (_addressCtrl.text.trim().isEmpty ||
           _provinceCtrl.text.trim().isEmpty ||
@@ -468,10 +522,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   void _back() {
-    final hasPhysical =
-        context.read<CartProvider>().items.any((e) => e.type == 'physical');
+    final hasPhysical = _hasPhysicalProducts(context.read<CartProvider>());
     if (_step == 3 && !hasPhysical) {
-      setState(() => _step = 0);
+      setState(() => _step = 1);
       return;
     }
     setState(() => _step = (_step - 1).clamp(0, _totalSteps - 1));
@@ -487,14 +540,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   Widget build(BuildContext context) {
     final cart = context.watch<CartProvider>();
-    final hasPhysical = cart.items.any((e) => e.type == 'physical');
+    final hasPhysical = _hasPhysicalProducts(cart);
 
     return Scaffold(
       backgroundColor: AppColors.bgBlue,
       body: SafeArea(
         child: Column(
           children: [
-            _buildHeader(),
+            _buildHeader(hasPhysical),
             _buildStepIndicator(hasPhysical),
             Expanded(
               child: _ctxLoading
@@ -512,8 +565,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _buildHeader() {
-    const stepLabels = ['Penerima', 'Alamat', 'Pengiriman', 'Konfirmasi'];
+  Widget _buildHeader(bool hasPhysical) {
+    const physicalStepLabels = [
+      'Penerima',
+      'Alamat',
+      'Pengiriman',
+      'Konfirmasi'
+    ];
+    const digitalStepLabels = ['Penerima', 'Pilih QR', 'Konfirmasi'];
+
+    final displayStepIndex = hasPhysical
+        ? _step
+        : (_step == 0
+            ? 0
+            : _step == 1
+                ? 1
+                : 2);
+    final stepLabel = hasPhysical
+        ? physicalStepLabels[_step]
+        : digitalStepLabels[displayStepIndex];
+
     return Container(
       decoration: const BoxDecoration(gradient: AppGradients.heroGradient),
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
@@ -539,7 +610,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
                       color: AppColors.textPrimary)),
-              Text('Langkah ${_step + 1}: ${stepLabels[_step]}',
+              Text('Langkah ${displayStepIndex + 1}: $stepLabel',
                   style: const TextStyle(
                       fontSize: 12, color: AppColors.textSecondary)),
             ],
@@ -550,11 +621,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Widget _buildStepIndicator(bool hasPhysical) {
-    // For digital-only: steps 0 and 3 only are active
-    final activeSteps = hasPhysical ? 4 : 2;
+    // Digital-only flow: step 0 (Penerima), step 1 (Pilih QR), step 3 (Konfirmasi)
+    final activeSteps = hasPhysical ? 4 : 3;
     final currentIdx = hasPhysical
         ? _step
-        : (_step == 0 ? 0 : 1); // map step 3 (review) to index 1 for digital
+        : (_step == 0
+            ? 0
+            : _step == 1
+                ? 1
+                : 2);
 
     return Container(
       color: Colors.white,
@@ -633,7 +708,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       case 0:
         return _buildStep0();
       case 1:
-        return _buildStep1();
+        return _buildStep1(hasPhysical: hasPhysical);
       case 2:
         return _buildStep2();
       case 3:
@@ -687,7 +762,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   // ─── Step 1: QR + Alamat ─────────────────────────────────────────────────
 
-  Widget _buildStep1() {
+  Widget _buildStep1({required bool hasPhysical}) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -771,128 +846,137 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
           const SizedBox(height: 20),
 
-          // Saved addresses — required for regency_id
-          _sectionTitle('Alamat Tersimpan', Icons.bookmark_rounded),
-          const SizedBox(height: 4),
-          const Text(
-            'Pilih alamat tersimpan agar sistem bisa menghitung ongkir. Data kota/kabupaten diambil dari sini.',
-            style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-          ),
-          const SizedBox(height: 10),
-          if (_savedAddresses.isEmpty)
+          if (!hasPhysical) ...[
             _infoTile(
-              Icons.warning_amber_rounded,
-              'Belum ada alamat tersimpan. Tambahkan alamat di halaman profil terlebih dahulu, lalu ulangi checkout.',
-              isWarning: true,
-            )
-          else
-            ..._savedAddresses.map((addr) {
-              final active = _selectedSavedAddress?.id == addr.id;
-              return GestureDetector(
-                onTap: () => _applySavedAddress(addr),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
-                  margin: const EdgeInsets.only(bottom: 10),
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: active ? AppColors.softBlue : Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: active ? AppColors.primaryBlue : AppColors.skyBlue,
-                      width: active ? 2 : 1.5,
+              Icons.info_outline,
+              'QR terpilih akan ditempelkan ke produk digital yang kamu beli.',
+            ),
+            const SizedBox(height: 80),
+          ] else ...[
+            // Saved addresses — required for regency_id
+            _sectionTitle('Alamat Tersimpan', Icons.bookmark_rounded),
+            const SizedBox(height: 4),
+            const Text(
+              'Pilih alamat tersimpan agar sistem bisa menghitung ongkir. Data kota/kabupaten diambil dari sini.',
+              style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 10),
+            if (_savedAddresses.isEmpty)
+              _infoTile(
+                Icons.warning_amber_rounded,
+                'Belum ada alamat tersimpan. Tambahkan alamat di halaman profil terlebih dahulu, lalu ulangi checkout.',
+                isWarning: true,
+              )
+            else
+              ..._savedAddresses.map((addr) {
+                final active = _selectedSavedAddress?.id == addr.id;
+                return GestureDetector(
+                  onTap: () => _applySavedAddress(addr),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: active ? AppColors.softBlue : Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color:
+                            active ? AppColors.primaryBlue : AppColors.skyBlue,
+                        width: active ? 2 : 1.5,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.home_rounded,
+                            color: active
+                                ? AppColors.primaryBlue
+                                : AppColors.textSecondary,
+                            size: 18),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(addr.label,
+                                  style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: active
+                                          ? AppColors.primaryBlue
+                                          : AppColors.textPrimary)),
+                              Text(addr.fullDisplay,
+                                  style: const TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.textSecondary)),
+                            ],
+                          ),
+                        ),
+                        if (active)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryBlue,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Text('Dipakai',
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700)),
+                          ),
+                      ],
                     ),
                   ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.home_rounded,
-                          color: active
-                              ? AppColors.primaryBlue
-                              : AppColors.textSecondary,
-                          size: 18),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(addr.label,
-                                style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                    color: active
-                                        ? AppColors.primaryBlue
-                                        : AppColors.textPrimary)),
-                            Text(addr.fullDisplay,
-                                style: const TextStyle(
-                                    fontSize: 11,
-                                    color: AppColors.textSecondary)),
-                          ],
-                        ),
-                      ),
-                      if (active)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryBlue,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Text('Dipakai',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700)),
-                        ),
-                    ],
-                  ),
-                ),
-              );
-            }),
+                );
+              }),
 
-          // Regency resolved indicator
-          if (_regencyId != null && _regencyId != 0) ...[
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                const Icon(Icons.check_circle,
-                    color: Color(0xFF43A047), size: 14),
-                const SizedBox(width: 6),
-                Text('Data wilayah tersedia (ID: $_regencyId)',
-                    style: const TextStyle(
-                        fontSize: 11, color: Color(0xFF2E7D32))),
-              ],
-            ),
+            // Regency resolved indicator
+            if (_regencyId != null && _regencyId != 0) ...[
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  const Icon(Icons.check_circle,
+                      color: Color(0xFF43A047), size: 14),
+                  const SizedBox(width: 6),
+                  Text('Data wilayah tersedia (ID: $_regencyId)',
+                      style: const TextStyle(
+                          fontSize: 11, color: Color(0xFF2E7D32))),
+                ],
+              ),
+            ],
+            const SizedBox(height: 12),
+
+            // Manual address fields
+            _sectionTitle('Alamat Pengiriman', Icons.location_on_rounded),
+            const SizedBox(height: 12),
+            _field(
+                ctrl: _addressCtrl,
+                label: 'Alamat Lengkap',
+                icon: Icons.location_on_outlined,
+                required: true,
+                maxLines: 2),
+            const SizedBox(height: 12),
+            _field(
+                ctrl: _provinceCtrl,
+                label: 'Provinsi',
+                icon: Icons.map_outlined,
+                required: true),
+            const SizedBox(height: 12),
+            _field(
+                ctrl: _cityCtrl,
+                label: 'Kota / Kabupaten',
+                icon: Icons.location_city_outlined,
+                required: true),
+            const SizedBox(height: 12),
+            _field(
+                ctrl: _postalCtrl,
+                label: 'Kode Pos',
+                icon: Icons.markunread_mailbox_outlined,
+                required: true,
+                keyboardType: TextInputType.number),
+            const SizedBox(height: 80),
           ],
-          const SizedBox(height: 12),
-
-          // Manual address fields
-          _sectionTitle('Alamat Pengiriman', Icons.location_on_rounded),
-          const SizedBox(height: 12),
-          _field(
-              ctrl: _addressCtrl,
-              label: 'Alamat Lengkap',
-              icon: Icons.location_on_outlined,
-              required: true,
-              maxLines: 2),
-          const SizedBox(height: 12),
-          _field(
-              ctrl: _provinceCtrl,
-              label: 'Provinsi',
-              icon: Icons.map_outlined,
-              required: true),
-          const SizedBox(height: 12),
-          _field(
-              ctrl: _cityCtrl,
-              label: 'Kota / Kabupaten',
-              icon: Icons.location_city_outlined,
-              required: true),
-          const SizedBox(height: 12),
-          _field(
-              ctrl: _postalCtrl,
-              label: 'Kode Pos',
-              icon: Icons.markunread_mailbox_outlined,
-              required: true,
-              keyboardType: TextInputType.number),
-          const SizedBox(height: 80),
         ],
       ),
     );
@@ -1167,33 +1251,36 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           ),
 
-          if (hasPhysical) ...[
+          if (_selectedQr != null) ...[
             const SizedBox(height: 20),
 
             // QR info
-            _sectionTitle('QR yang Ditampilkan', Icons.qr_code_2_rounded),
+            _sectionTitle(
+                hasPhysical ? 'QR yang Ditampilkan' : 'QR untuk Produk Digital',
+                Icons.qr_code_2_rounded),
             const SizedBox(height: 10),
-            if (_selectedQr != null)
-              _reviewTile(
-                  Icons.qr_code_rounded,
-                  _selectedQr!.name,
-                  _selectedQr!.expiresAt != null
-                      ? 'Aktif hingga ${_formatDate(_selectedQr!.expiresAt!)}'
-                      : ''),
+            _reviewTile(
+                Icons.qr_code_rounded,
+                _selectedQr!.name,
+                _selectedQr!.expiresAt != null
+                    ? 'Aktif hingga ${_formatDate(_selectedQr!.expiresAt!)}'
+                    : ''),
 
-            const SizedBox(height: 20),
+            if (hasPhysical) ...[
+              const SizedBox(height: 20),
 
-            // Shipping info
-            _sectionTitle('Pengiriman', Icons.local_shipping_rounded),
-            const SizedBox(height: 10),
-            _reviewTile(Icons.location_on_rounded, _addressCtrl.text,
-                '${_cityCtrl.text}, ${_provinceCtrl.text} ${_postalCtrl.text}'),
-            const SizedBox(height: 10),
-            if (_selectedService != null)
-              _reviewTile(
-                  Icons.directions_car_outlined,
-                  '${_selectedCourier?.toUpperCase()} — ${_selectedService!.service}',
-                  '${_selectedService!.description}  •  ${_fmt(_selectedService!.cost)}'),
+              // Shipping info
+              _sectionTitle('Pengiriman', Icons.local_shipping_rounded),
+              const SizedBox(height: 10),
+              _reviewTile(Icons.location_on_rounded, _addressCtrl.text,
+                  '${_cityCtrl.text}, ${_provinceCtrl.text} ${_postalCtrl.text}'),
+              const SizedBox(height: 10),
+              if (_selectedService != null)
+                _reviewTile(
+                    Icons.directions_car_outlined,
+                    '${_selectedCourier?.toUpperCase()} — ${_selectedService!.service}',
+                    '${_selectedService!.description}  •  ${_fmt(_selectedService!.cost)}'),
+            ],
           ],
 
           const SizedBox(height: 20),
