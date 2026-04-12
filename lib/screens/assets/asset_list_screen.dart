@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -92,7 +92,7 @@ class _AssetListScreenState extends State<AssetListScreen> {
     final provider = context.watch<AssetProvider>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Daftar Assetku 🎒')),
+      appBar: AppBar(title: const Text('Daftar Assetku')),
       floatingActionButton: FloatingActionButton(
         onPressed: _showCreateDialog,
         backgroundColor: Colors.orange,
@@ -189,3 +189,6 @@ class _AssetListScreenState extends State<AssetListScreen> {
     );
   }
 }
+
+
+

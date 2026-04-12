@@ -1,4 +1,4 @@
-import 'package:cached_network_image/cached_network_image.dart';
+﻿import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -200,7 +200,7 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
-                      'Produk Unggulan 🛍️',
+                      'Produk Unggulan',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
@@ -854,7 +854,7 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
                   children: [
                     _socialStat('${sp?.customerCount ?? 500}+', 'Pengguna'),
                     Container(width: 1, height: 40, color: Colors.white30),
-                    _socialStat('⭐ ${sp?.rating ?? 4.9}', 'Rating'),
+                    _socialStat('${sp?.rating ?? 4.9}', 'Rating'),
                     Container(width: 1, height: 40, color: Colors.white30),
                     _socialStat('${sp?.totalReviews ?? 1200}+', 'Ulasan'),
                   ],
@@ -943,3 +943,7 @@ class _CategoryChipItem {
   final String key;
   final String label;
 }
+
+
+
+

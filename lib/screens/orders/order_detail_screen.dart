@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/order_model.dart';
@@ -51,12 +51,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     final order = _order;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Detail Pesanan 🧾')),
+      appBar: AppBar(title: const Text('Detail Pesanan')),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : order == null
               ? const Center(
-                  child: Text('Pesanan tidak ditemukan 😢',
+                  child: Text('Pesanan tidak ditemukan',
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold)))
               : SingleChildScrollView(
@@ -149,7 +149,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                         ),
                       ),
                       const SizedBox(height: 24),
-                      Text('Barang yang Dipesan 🎁',
+                      Text('Barang yang Dipesan',
                           style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -185,3 +185,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     );
   }
 }
+
+
+

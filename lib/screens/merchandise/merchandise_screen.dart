@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
@@ -244,7 +244,7 @@ class _MerchandiseScreenState extends State<MerchandiseScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Merchandise FOMI 👕')),
+      appBar: AppBar(title: const Text('Merchandise FOMI')),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
@@ -318,7 +318,7 @@ class _MerchandiseScreenState extends State<MerchandiseScreen> {
             ),
           ),
           const SizedBox(height: 32),
-          Text('Koleksiku 🎒',
+          Text('Koleksiku',
               style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -424,3 +424,7 @@ class _MerchandiseScreenState extends State<MerchandiseScreen> {
     );
   }
 }
+
+
+
+

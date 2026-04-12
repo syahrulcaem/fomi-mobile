@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -69,12 +69,12 @@ class _QrCodeDetailScreenState extends State<QrCodeDetailScreen> {
     final qr = _qrcode;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Detail QR Code 🔍')),
+      appBar: AppBar(title: const Text('Detail QR Code')),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : qr == null
               ? const Center(
-                  child: Text('Yah, data QR tidak ditemukan 😢',
+                  child: Text('Yah, data QR tidak ditemukan',
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold)))
               : SingleChildScrollView(
@@ -262,3 +262,7 @@ class _QrCodeDetailScreenState extends State<QrCodeDetailScreen> {
     );
   }
 }
+
+
+
+

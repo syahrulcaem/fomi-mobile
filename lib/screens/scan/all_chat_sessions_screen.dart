@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/app_theme.dart';
@@ -276,3 +276,5 @@ class _SessionItem {
 
   ChatModel get lastMessage => messages.last;
 }
+
+

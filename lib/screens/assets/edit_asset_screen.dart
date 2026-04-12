@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -65,7 +65,7 @@ class _EditAssetScreenState extends State<EditAssetScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Asset ✏️')),
+      appBar: AppBar(title: const Text('Edit Asset')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Card(
@@ -115,3 +115,7 @@ class _EditAssetScreenState extends State<EditAssetScreen> {
     );
   }
 }
+
+
+
+

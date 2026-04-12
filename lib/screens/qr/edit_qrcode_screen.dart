@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../services/qrcode_service.dart';
@@ -130,7 +130,7 @@ class _EditQrCodeScreenState extends State<EditQrCodeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Data QR ✏️')),
+      appBar: AppBar(title: const Text('Edit Data QR')),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -295,3 +295,7 @@ class _EditQrCodeScreenState extends State<EditQrCodeScreen> {
     );
   }
 }
+
+
+
+

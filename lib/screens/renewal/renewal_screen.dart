@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -341,7 +341,7 @@ class _RenewalScreenState extends State<RenewalScreen> {
                     (target) => DropdownMenuItem<String>(
                       value: target.id,
                       child: Text(
-                        '${target.name} • Exp: ${_formatDate(target.expiresAt)}',
+                        '${target.name}',
                       ),
                     ),
                   )
@@ -489,3 +489,7 @@ class _EmptyPackagesState extends StatelessWidget {
     );
   }
 }
+
+
+
+

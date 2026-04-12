@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -60,7 +60,7 @@ class _OrderListScreenState extends State<OrderListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Kiriman Pesananku 📦')),
+      appBar: AppBar(title: const Text('Kiriman Pesananku')),
       body: Column(
         children: [
           Expanded(
@@ -191,3 +191,6 @@ class _OrderListScreenState extends State<OrderListScreen> {
     );
   }
 }
+
+
+

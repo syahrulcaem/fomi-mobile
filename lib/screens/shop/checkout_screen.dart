@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
@@ -8,7 +8,7 @@ import '../../models/checkout_address_model.dart';
 import '../../providers/cart_provider.dart';
 import '../../services/shop_service.dart';
 
-// ─── Simple data classes ────────────────────────────────────────────────────
+//
 
 class _QrAsset {
   _QrAsset({
@@ -94,7 +94,7 @@ class _ShippingService {
   final String? etd;
 }
 
-// ─── Main Screen ────────────────────────────────────────────────────────────
+//
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -104,11 +104,11 @@ class CheckoutScreen extends StatefulWidget {
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
-  // ── multi-step ──
+  //
   int _step = 0; // 0=Penerima, 1=Alamat+QR, 2=Ongkir, 3=Review
   static const int _totalSteps = 4;
 
-  // ── form ──
+  //
   final _formKey = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
@@ -118,7 +118,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _provinceCtrl = TextEditingController();
   final _postalCtrl = TextEditingController();
 
-  // ── context data ──
+  //
   bool _ctxLoading = true;
   String? _ctxError;
   List<_QrAsset> _qrAssets = [];
@@ -127,21 +127,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   int? _regencyId;
   int? _districtId;
 
-  // ── selections ──
+  //
   _QrAsset? _selectedQr;
   _SavedAddress? _selectedSavedAddress;
   String? _selectedCourier;
   _ShippingService? _selectedService;
 
-  // ── shipping calc ──
+  //
   bool _shippingLoading = false;
   List<_ShippingService> _shippingServices = [];
   String? _shippingError;
 
-  // ── submit ──
+  //
   bool _paying = false;
 
-  // ── helpers ──
+  //
   String _fmt(int price) {
     final s = price.toString();
     final buf = StringBuffer();
@@ -232,7 +232,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return services;
   }
 
-  // ─── lifecycle ───────────────────────────────────────────────────────────
+  //
 
   @override
   void initState() {
@@ -252,7 +252,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     super.dispose();
   }
 
-  // ─── API calls ───────────────────────────────────────────────────────────
+  //
 
   Future<void> _loadContext() async {
     setState(() {
@@ -460,7 +460,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         '';
   }
 
-  // ─── navigation ──────────────────────────────────────────────────────────
+  //
 
   void _next() {
     final cart = context.read<CartProvider>();
@@ -535,7 +535,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         SnackBar(content: Text(msg), backgroundColor: Colors.red));
   }
 
-  // ─── build ───────────────────────────────────────────────────────────────
+  //
 
   @override
   Widget build(BuildContext context) {
@@ -718,7 +718,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
-  // ─── Step 0: Data Penerima ───────────────────────────────────────────────
+  //
 
   Widget _buildStep0() {
     return SingleChildScrollView(
@@ -760,7 +760,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  // ─── Step 1: QR + Alamat ─────────────────────────────────────────────────
+  //
 
   Widget _buildStep1({required bool hasPhysical}) {
     return SingleChildScrollView(
@@ -853,7 +853,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
             const SizedBox(height: 80),
           ] else ...[
-            // Saved addresses — required for regency_id
+            // Saved addresses
             _sectionTitle('Alamat Tersimpan', Icons.bookmark_rounded),
             const SizedBox(height: 4),
             const Text(
@@ -994,7 +994,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     });
   }
 
-  // ─── Step 2: Pilih Ongkir ────────────────────────────────────────────────
+  //
 
   Widget _buildStep2() {
     return SingleChildScrollView(
@@ -1110,7 +1110,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                                '${_selectedCourier?.toUpperCase()} — ${svc.service}',
+                                '${_selectedCourier?.toUpperCase()}',
                                 style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w700,
@@ -1147,7 +1147,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  // ─── Step 3: Konfirmasi ──────────────────────────────────────────────────
+  //
 
   Widget _buildStep3(CartProvider cart, bool hasPhysical) {
     final shippingCost = _selectedService?.cost ?? 0;
@@ -1278,8 +1278,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               if (_selectedService != null)
                 _reviewTile(
                     Icons.directions_car_outlined,
-                    '${_selectedCourier?.toUpperCase()} — ${_selectedService!.service}',
-                    '${_selectedService!.description}  •  ${_fmt(_selectedService!.cost)}'),
+                    '${_selectedCourier?.toUpperCase()}',
+                    '${_selectedService!.description} '),
             ],
           ],
 
@@ -1289,7 +1289,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           _sectionTitle('Penerima', Icons.person_rounded),
           const SizedBox(height: 10),
           _reviewTile(Icons.person_outline, _nameCtrl.text,
-              '${_emailCtrl.text}  •  ${_phoneCtrl.text}'),
+              '${_emailCtrl.text} '),
 
           const SizedBox(height: 100),
         ],
@@ -1297,7 +1297,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  // ─── Bottom bar ──────────────────────────────────────────────────────────
+  //
 
   Widget _buildBottomBar(CartProvider cart, bool hasPhysical) {
     final shippingCost = _selectedService?.cost ?? 0;
@@ -1374,7 +1374,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           child: CircularProgressIndicator(
                               color: Colors.white, strokeWidth: 2))
                       : Text(
-                          isLastStep ? 'Bayar Sekarang 💳' : 'Lanjut →',
+                          isLastStep ? 'Bayar Sekarang' : 'Lanjut',
                           style: const TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
@@ -1389,7 +1389,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  // ─── Shared UI helpers ───────────────────────────────────────────────────
+  //
 
   Widget _sectionTitle(String title, IconData icon) {
     return Row(
@@ -1567,3 +1567,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 }
+
+
+

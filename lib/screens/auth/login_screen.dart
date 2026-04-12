@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -78,7 +78,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Masuk ke FOMI! 🚀')),
+      appBar: AppBar(title: const Text('Masuk ke FOMI!')),
       body: Center(
         child: SingleChildScrollView(
           child: ConstrainedBox(
@@ -157,7 +157,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             TextButton(
                               onPressed: () => context.push('/register'),
                               child: const Text(
-                                'Belum punya akun? Daftar di sini! ✨',
+                                'Belum punya akun? Daftar di sini!',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -179,3 +179,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+
+
+
+

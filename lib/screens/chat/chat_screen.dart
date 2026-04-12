@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/chat_model.dart';
@@ -89,7 +89,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Obrolan 💬')),
+      appBar: AppBar(title: const Text('Obrolan')),
       body: Column(
         children: [
           Expanded(
@@ -196,3 +196,6 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 }
+
+
+

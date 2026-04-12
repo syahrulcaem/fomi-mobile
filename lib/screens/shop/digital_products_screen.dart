@@ -1,4 +1,4 @@
-import 'dart:typed_data';
+﻿import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -437,7 +437,7 @@ class _DigitalProductsScreenState extends State<DigitalProductsScreen> {
                   (asset) => DropdownMenuItem<String>(
                     value: asset.id,
                     child: Text(
-                      '${asset.name} • Exp: ${_formatDate(asset.expiresAt)}',
+                      '${asset.name}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -450,7 +450,7 @@ class _DigitalProductsScreenState extends State<DigitalProductsScreen> {
                     (asset) => Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        '${asset.name} • Exp: ${_formatDate(asset.expiresAt)}',
+                        '${asset.name}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -596,3 +596,7 @@ class _DigitalProductsScreenState extends State<DigitalProductsScreen> {
     );
   }
 }
+
+
+
+

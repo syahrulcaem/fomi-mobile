@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -78,7 +78,7 @@ class _OrderSuccessScreenState extends State<OrderSuccessScreen> with TickerProv
                   ),
                   const SizedBox(height: 28),
                   const Text(
-                    'Pembayaran Berhasil! 🎉',
+                    'Pembayaran Berhasil!',
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.textPrimary),
                   ),
@@ -144,3 +144,6 @@ class _OrderSuccessScreenState extends State<OrderSuccessScreen> with TickerProv
     );
   }
 }
+
+
+

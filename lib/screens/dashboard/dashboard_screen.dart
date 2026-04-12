@@ -1,4 +1,4 @@
-import 'package:cached_network_image/cached_network_image.dart';
+﻿import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -68,38 +68,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
         color: AppColors.primaryBlue,
         child: CustomScrollView(
           slivers: [
-            // ── Gradient Header ──
+            //
             SliverToBoxAdapter(child: _buildHeader(auth)),
 
-            // ── Stats Row ──
+            //
             if (_loading)
               SliverToBoxAdapter(child: _buildStatsSkeletons())
             else if (_error == null)
               SliverToBoxAdapter(child: _buildStats(stats)),
 
-            // ── Error ──
+            //
             if (_error != null && !_loading)
               SliverToBoxAdapter(child: _buildError()),
 
-            // ── Primary CTA: Scan Merchandise ──
+            //
             SliverToBoxAdapter(child: _buildScanCta()),
 
-            // ── QR Codes Quick Access ──
+            //
             SliverToBoxAdapter(
-                child: _buildSectionHeader('QR Code Milikku 📱', '/qrcodes')),
+                child: _buildSectionHeader('QR Code Milikku', '/qrcodes')),
             SliverToBoxAdapter(child: _buildQrScroll()),
 
-            // ── Recent Items ──
+            //
             SliverToBoxAdapter(
-                child: _buildSectionHeader('Barang Terbaru 📦', '/qrcodes')),
+                child: _buildSectionHeader('Barang Terbaru', '/qrcodes')),
             _buildRecentItems(),
 
-            // ── Recent Orders ──
+            //
             SliverToBoxAdapter(
-                child: _buildSectionHeader('Pesanan Terkini 🚚', '/orders')),
+                child: _buildSectionHeader('Pesanan Terkini', '/orders')),
             _buildRecentOrders(),
 
-            // ── Quick Links ──
+            //
             SliverToBoxAdapter(child: _buildQuickLinks()),
 
             const SliverToBoxAdapter(child: SizedBox(height: 100)),
@@ -109,9 +109,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // ────────────────────────────────────────────
+  //
   // Header
-  // ────────────────────────────────────────────
+  //
 
   Widget _buildHeader(AuthProvider auth) {
     final name = auth.currentUser?.name ?? 'Sobat';
@@ -129,19 +129,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Row(
             children: [
               // Logo
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryBlue,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Center(
-                  child: Text('F',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 20)),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Image.asset(
+                  'assets/icon/icon.png',
+                  width: 36,
+                  height: 36,
+                  fit: BoxFit.cover,
                 ),
               ),
               const SizedBox(width: 8),
@@ -169,7 +163,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(height: 20),
           // Greeting
           Text(
-            'Halo, $name! 👋',
+            'Halo, $name!',
             style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w900,
@@ -186,9 +180,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // ────────────────────────────────────────────
+  //
   // Stats
-  // ────────────────────────────────────────────
+  //
 
   Widget _buildStats(DashboardStats? stats) {
     if (stats == null) return const SizedBox.shrink();
@@ -271,9 +265,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // ────────────────────────────────────────────
+  //
   // Error
-  // ────────────────────────────────────────────
+  //
 
   Widget _buildError() {
     return GestureDetector(
@@ -301,9 +295,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // ────────────────────────────────────────────
-  // Primary CTA — Scan Merchandise
-  // ────────────────────────────────────────────
+  //
+  // Primary CTA
+  //
 
   Widget _buildScanCta() {
     return Padding(
@@ -369,9 +363,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // ────────────────────────────────────────────
+  //
   // Section header
-  // ────────────────────────────────────────────
+  //
 
   Widget _buildSectionHeader(String title, String route) {
     return Padding(
@@ -404,9 +398,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // ────────────────────────────────────────────
+  //
   // QR Codes Horizontal Scroll
-  // ────────────────────────────────────────────
+  //
 
   Widget _buildQrScroll() {
     if (_loading) {
@@ -515,9 +509,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // ────────────────────────────────────────────
+  //
   // Recent Items
-  // ────────────────────────────────────────────
+  //
 
   Widget _buildRecentItems() {
     if (_loading) {
@@ -639,9 +633,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // ────────────────────────────────────────────
+  //
   // Recent Orders
-  // ────────────────────────────────────────────
+  //
 
   Widget _buildRecentOrders() {
     if (_loading) {
@@ -757,9 +751,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // ────────────────────────────────────────────
+  //
   // Quick Links
-  // ────────────────────────────────────────────
+  //
 
   Widget _buildQuickLinks() {
     final links = [
@@ -834,9 +828,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 }
 
-// ───────────────────────────────────────────────
+//
 // Data classes
-// ───────────────────────────────────────────────
+//
 
 class _StatData {
   const _StatData(this.label, this.value, this.icon, this.color);
@@ -853,3 +847,6 @@ class _QuickLink {
   final String route;
   final Color color;
 }
+
+
+

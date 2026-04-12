@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:provider/provider.dart';
@@ -59,7 +59,7 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
     final contact = _scanResult?['contact_info'] as Map<String, dynamic>?;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Scan QR Code 📸')),
+      appBar: AppBar(title: const Text('Scan QR Code')),
       body: Column(
         children: [
           Expanded(
@@ -100,7 +100,7 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
                         Icon(Icons.camera_alt, size: 64, color: Colors.blue),
                         SizedBox(height: 16),
                         Text(
-                          'Arahkan kameramu ke QR code untuk mulai scan! ✨',
+                          'Arahkan kameramu ke QR code untuk mulai scan!',
                           textAlign: TextAlign.center,
                           style: TextStyle(fontSize: 18, color: Colors.blueGrey, fontWeight: FontWeight.bold),
                         ),
@@ -117,7 +117,7 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: Text(
-                              isLost ? 'Wah, Barang Ini Hilang! 🚨' : 'Barang Aman! ✅',
+                              isLost ? 'Wah, Barang Ini Hilang!' : 'Barang Aman!',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 20,
@@ -194,3 +194,7 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
     );
   }
 }
+
+
+
+

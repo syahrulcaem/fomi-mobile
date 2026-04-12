@@ -1,4 +1,4 @@
-import 'package:cached_network_image/cached_network_image.dart';
+﻿import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -370,3 +370,5 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> with TickerPr
         child: const Center(child: Icon(Icons.image_outlined, size: 80, color: AppColors.primaryBlue)),
       );
 }
+
+

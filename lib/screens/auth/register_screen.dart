@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -147,7 +147,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             TextButton(
                               onPressed: () => context.pop(),
                               child: const Text(
-                                'Sudah punya akun? Masuk aja 🤗',
+                                'Sudah punya akun? Masuk aja',
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
@@ -169,3 +169,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 }
+
+
+
+

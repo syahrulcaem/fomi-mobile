@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
@@ -62,7 +62,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  // ───────── Helpers ─────────
+  //
 
   String _normalizeBarcode(String raw) {
     final value = raw.trim();
@@ -79,7 +79,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
     return value;
   }
 
-  // ───────── Load koleksi ─────────
+  //
 
   Future<void> _loadItems({int? page}) async {
     setState(() => _loadingItems = true);
@@ -99,7 +99,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
     }
   }
 
-  // ───────── Camera scanner ─────────
+  //
 
   void _onDetect(BarcodeCapture capture) {
     if (_scanHandled || _verifying) return;
@@ -111,7 +111,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
     Future.microtask(() => _verify(normalized));
   }
 
-  // ───────── Verify ─────────
+  //
 
   Future<void> _verify([String? override]) async {
     final barcode = _normalizeBarcode(override ?? _barcodeCtrl.text);
@@ -156,7 +156,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
     }
   }
 
-  // ───────── Open camera bottom sheet ─────────
+  //
 
   Future<void> _openCamera() async {
     _scanHandled = false;
@@ -322,7 +322,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
     ];
   }
 
-  // ───────── Build ─────────
+  //
 
   @override
   Widget build(BuildContext context) {
@@ -785,7 +785,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
             onPressed: _page > 1 && !_loadingItems
                 ? () => _loadItems(page: _page - 1)
                 : null,
-            child: const Text('← Sebelumnya'),
+            child: const Text('< Sebelumnya'),
           ),
         ),
         Padding(
@@ -799,7 +799,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
             onPressed: _items.hasMore && !_loadingItems
                 ? () => _loadItems(page: _page + 1)
                 : null,
-            child: const Text('Berikutnya →'),
+            child: const Text('Berikutnya'),
           ),
         ),
       ]),
@@ -812,3 +812,7 @@ class _ScanResult {
   final bool success;
   final String message;
 }
+
+
+
+

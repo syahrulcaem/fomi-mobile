@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -275,21 +275,16 @@ class _SplashScreen extends StatelessWidget {
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(gradient: AppGradients.heroGradient),
-        child: const Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CircularProgressIndicator(color: Color(0xFF3B82F6)),
-              SizedBox(height: 16),
-              Text('FOMI',
-                  style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w900,
-                      color: Color(0xFF1E3A5F))),
-            ],
+        child: Center(
+          child: Image.asset(
+            'assets/icon/icon.png',
+            width: 180,
+            height: 180,
+            fit: BoxFit.contain,
           ),
         ),
       ),
     );
   }
 }
+

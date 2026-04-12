@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -29,12 +29,12 @@ class _AssetDetailScreenState extends State<AssetDetailScreen> {
     final qrCode = asset?.primaryQrCode;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Detail Assetku 🔍')),
+      appBar: AppBar(title: const Text('Detail Assetku')),
       body: provider.isLoading
           ? const Center(child: CircularProgressIndicator())
           : asset == null
               ? const Center(
-                  child: Text('Asset tidak ditemukan 😢',
+                  child: Text('Asset tidak ditemukan',
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold)))
               : SingleChildScrollView(
@@ -113,7 +113,7 @@ class _AssetDetailScreenState extends State<AssetDetailScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Informasi QR Code 📱',
+                              const Text('Informasi QR Code',
                                   style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
@@ -195,3 +195,7 @@ class _AssetDetailScreenState extends State<AssetDetailScreen> {
     );
   }
 }
+
+
+
+

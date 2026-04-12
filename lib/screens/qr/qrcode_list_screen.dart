@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -60,7 +60,7 @@ class _QrCodeListScreenState extends State<QrCodeListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('QR Code Milikku 📱')),
+      appBar: AppBar(title: const Text('QR Code Milikku')),
       body: Column(
         children: [
           Expanded(
@@ -197,3 +197,6 @@ class _QrCodeListScreenState extends State<QrCodeListScreen> {
     );
   }
 }
+
+
+
