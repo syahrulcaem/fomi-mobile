@@ -10,7 +10,7 @@ class ApiClient {
           BaseOptions(
             baseUrl: const String.fromEnvironment(
               'API_BASE_URL',
-              defaultValue: 'https://fomi.syahrulcaem.my.id/api',
+              defaultValue: 'https://fomi.live/api',
             ),
             connectTimeout: const Duration(seconds: 20),
             receiveTimeout: const Duration(seconds: 20),

@@ -651,21 +651,7 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.softBlue,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        product.type.toUpperCase(),
-                        style: const TextStyle(
-                            fontSize: 9,
-                            color: AppColors.primaryBlue,
-                            fontWeight: FontWeight.w700),
-                      ),
-                    ),
+                    _buildProductTypeBadge(product.type),
                     const SizedBox(height: 4),
                     Text(
                       product.name,
@@ -858,6 +844,37 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
         Text(label,
             style: const TextStyle(color: Colors.white70, fontSize: 12)),
       ],
+    );
+  }
+
+  Widget _buildProductTypeBadge(String type) {
+    final isPhysical = type == 'physical';
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: isPhysical ? AppColors.softBlue : const Color(0xFFE8F5E9),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            isPhysical ? Icons.local_shipping_outlined : Icons.bolt_rounded,
+            size: 9,
+            color: isPhysical ? AppColors.primaryBlue : const Color(0xFF2E7D32),
+          ),
+          const SizedBox(width: 3),
+          Text(
+            isPhysical ? 'FISIK' : 'DIGITAL',
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
+              color:
+                  isPhysical ? AppColors.primaryBlue : const Color(0xFF2E7D32),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

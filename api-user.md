@@ -115,7 +115,12 @@ Contoh respons `200`:
 
 ### GET `/products`
 
-Mengambil daftar produk aktif.
+Mengambil daftar produk aktif khusus **produk barang** (`type=physical`, non paket langganan).
+
+Query parameter opsional:
+
+- `category_id`: filter berdasarkan ULID kategori produk
+- `category`: filter berdasarkan `id` / `slug` / `name` kategori
 
 Contoh respons `200`:
 
@@ -626,72 +631,261 @@ Contoh respons `201`:
 }
 ```
 
-## 10. Order dan Checkout User
+## 10. API Mobile Dashboard User (Prefix `/user`)
 
-### POST `/orders/checkout`
+Endpoint di bawah ini dirancang untuk konsumsi mobile app dan semuanya memerlukan Bearer token.
 
-Membuat order checkout biasa dari daftar produk dan menghasilkan Snap token Midtrans.
+### GET `/user/chats`
 
-Request body:
+Mengambil daftar thread chat anonim milik user (owner) lintas aset.
+
+Contoh respons `200`:
 
 ```json
 {
-    "items": [
+    "data": [
         {
-            "product_id": 1,
-            "quantity": 2
-        },
-        {
-            "product_id": 3,
-            "quantity": 1
+            "asset_id": "01JQ...",
+            "asset_name": "Tas Kerja",
+            "asset_status": "lost",
+            "session_id": "finder-abc123-1742280000000",
+            "last_message": "Apakah bisa saya antar malam ini?",
+            "last_sender_type": "finder",
+            "last_message_at": "2026-03-18T08:10:00.000000Z",
+            "message_count": 4
         }
     ]
 }
 ```
 
-Field:
+### GET `/user/chats/{asset}/{sessionId}`
 
-- `items`: required, array, minimal 1 item
-- `items[].product_id`: required, harus ada di tabel products
-- `items[].quantity`: required, integer, min 1
+Mengambil detail pesan untuk satu thread chat anonim.
 
-Catatan proses:
+Contoh respons `200`:
 
-- Untuk produk fisik, stok dicek sebelum order dibuat
-- Order dibuat dengan status awal `pending`
-- Payment dibuat dengan status awal `pending`
-- Respons mengembalikan `snap_token` dan `redirect_url`
+```json
+{
+    "asset": {
+        "id": "01JQ...",
+        "name": "Tas Kerja",
+        "status": "lost"
+    },
+    "session_id": "finder-abc123-1742280000000",
+    "data": [
+        {
+            "id": "01JQ...",
+            "asset_id": "01JQ...",
+            "sender_type": "finder",
+            "message": "Halo, saya menemukan barang ini.",
+            "session_id": "finder-abc123-1742280000000",
+            "created_at": "2026-03-18T08:00:00.000000Z",
+            "updated_at": "2026-03-18T08:00:00.000000Z"
+        }
+    ]
+}
+```
+
+### POST `/user/chats/{asset}/{sessionId}/reply`
+
+Mengirim balasan dari owner ke thread chat tertentu.
+
+Request body:
+
+```json
+{
+    "message": "Siap, terima kasih infonya."
+}
+```
 
 Contoh respons `201`:
 
 ```json
 {
-    "order": {
-        "id": 123,
-        "order_number": "FOMI-20260314-ABC123",
-        "total_amount": 150000,
-        "status": "pending",
-        "items": [
-            {
-                "id": 1,
-                "product_id": 1,
-                "quantity": 2,
-                "price": 50000,
-                "product": {
-                    "id": 1,
-                    "name": "QR Tag Basic"
-                }
-            }
-        ],
-        "payment": {
-            "id": 5,
-            "midtrans_order_id": "FOMI-123-1710400000",
-            "snap_token": "midtrans-snap-token",
-            "status": "pending"
+    "message": "Balasan berhasil dikirim.",
+    "data": {
+        "id": "01JQ...",
+        "asset_id": "01JQ...",
+        "sender_type": "owner",
+        "message": "Siap, terima kasih infonya.",
+        "session_id": "finder-abc123-1742280000000",
+        "created_at": "2026-03-18T08:12:00.000000Z",
+        "updated_at": "2026-03-18T08:12:00.000000Z"
+    }
+}
+```
+
+### DELETE `/user/chats/{asset}/{sessionId}`
+
+Menghapus seluruh thread chat anonim pada satu session finder.
+
+Contoh respons `200`:
+
+```json
+{
+    "message": "Percakapan berhasil dihapus.",
+    "deleted_count": 4
+}
+```
+
+### DELETE `/user/chats/{asset}/message/{chat}`
+
+Menghapus satu pesan chat anonim tertentu (owner side).
+
+Contoh respons `200`:
+
+```json
+{
+    "message": "Pesan berhasil dihapus."
+}
+```
+
+## 11. Order dan Checkout User (Update Mobile Checkout Apr 2026)
+
+Flow checkout mobile sekarang mengikuti flow checkout web terbaru (multi-step, dukungan produk fisik + digital, renewal, dan manual bank transfer).
+
+Endpoint utama checkout baru:
+
+- `POST /user/shop/checkout`
+
+Endpoint lama yang tetap tersedia (alias):
+
+- `POST /orders/checkout`
+
+### GET `/user/shop/checkout/context`
+
+Mengambil data awal yang dibutuhkan sebelum user checkout.
+
+Response utama:
+
+- `customer` (nama/email/phone default)
+- `midtrans` (`client_key`, `is_production`, `check_status_url`)
+- `renewal_targets` (aset yang bisa dipilih untuk mode perpanjang)
+- `active_qr_assets` (aset QR aktif untuk checkout produk fisik)
+- `saved_addresses` (alamat tersimpan milik user)
+- `available_shipping_couriers` (kurir yang aktif di sistem)
+
+Catatan:
+
+- Endpoint alias juga tersedia di `GET /orders/checkout/context`
+
+### GET `/user/shop/checkout/addresses`
+
+Mengambil daftar alamat tersimpan milik user untuk checkout.
+
+### POST `/user/shop/checkout/addresses`
+
+Menyimpan alamat baru milik user.
+
+Request body:
+
+```json
+{
+    "label": "Rumah",
+    "shipping_address": "Jl. Melati No. 10",
+    "shipping_postal_code": "40123",
+    "province_id": 32,
+    "regency_id": 3273,
+    "district_id": 3273010,
+    "district_name": "Coblong"
+}
+```
+
+### DELETE `/user/shop/checkout/addresses/{address}`
+
+Menghapus alamat tersimpan milik user.
+
+### POST `/user/shop/checkout`
+
+Membuat order checkout sesuai sistem checkout terbaru.
+
+Request body contoh (Midtrans, produk fisik):
+
+```json
+{
+    "items": [
+        {
+            "product_id": "01J...",
+            "variant_id": "01J...",
+            "quantity": 1
         }
-    },
+    ],
+    "payment_method": "midtrans",
+    "selected_asset_id": "01J...",
+    "customer_name": "Budi",
+    "customer_email": "budi@example.com",
+    "customer_phone": "08123456789",
+    "shipping_address": "Jl. Melati No. 10",
+    "shipping_city": "Kota Bandung",
+    "shipping_province": "Jawa Barat",
+    "shipping_postal_code": "40123",
+    "regency_id": 3273,
+    "district_id": 3273010,
+    "shipping_cost": 12000,
+    "shipping_courier": "jne",
+    "shipping_service": "REG"
+}
+```
+
+Request body contoh (manual bank transfer):
+
+`multipart/form-data`
+
+- semua field checkout biasa
+- `payment_method=bank_transfer`
+- `payment_bank_name`
+- `payment_sender_name`
+- `payment_proof` (jpg/jpeg/png/webp/pdf max 4 MB)
+
+Field penting:
+
+- `items`: required, array minimal 1 item
+- `items[].product_id`: required
+- `items[].variant_id`: optional (menjadi wajib jika produk punya varian aktif)
+- `items[].quantity`: required, integer, min 1
+- `payment_method`: optional, `midtrans` (default) atau `bank_transfer`
+- `renewal_asset_id`: optional (mode perpanjang QR)
+- `selected_asset_id`: required jika checkout mengandung produk fisik
+
+Field pengiriman (wajib jika ada produk fisik):
+
+- `shipping_address`, `shipping_city`, `shipping_province`, `shipping_postal_code`
+- `regency_id`, `district_id`
+- `shipping_cost`
+- `shipping_courier` (harus termasuk kurir yang aktif)
+- `shipping_service`
+
+Aturan bisnis penting:
+
+- Checkout produk fisik wajib memilih `selected_asset_id` yang aktif (punya subscription aktif + QR aktif).
+- `renewal_asset_id` tidak boleh digabung dengan checkout produk fisik.
+- Jika `renewal_asset_id` diisi, checkout harus tepat 1 item paket subscription dengan quantity 1.
+- Produk digital non-package wajib punya template sticker aktif.
+
+Contoh respons `201` (Midtrans):
+
+```json
+{
+    "message": "Checkout berhasil dibuat.",
+    "order_id": "01J...",
     "snap_token": "midtrans-snap-token",
-    "redirect_url": "https://app.sandbox.midtrans.com/snap/v2/vtweb/midtrans-snap-token"
+    "check_status_url": "https://domain-anda/api/midtrans/check-status",
+    "redirect_url": "https://app.sandbox.midtrans.com/snap/v2/vtweb/midtrans-snap-token",
+    "order": {
+        "id": "01J...",
+        "status": "pending"
+    }
+}
+```
+
+Contoh respons `201` (bank transfer manual):
+
+```json
+{
+    "manual_payment": true,
+    "order_id": "01J...",
+    "order_number": "FOMI-20260409-ABC123",
+    "message": "Bukti transfer berhasil dikirim. Admin akan memverifikasi pembayaran Anda."
 }
 ```
 
@@ -701,7 +895,7 @@ Mengambil daftar order milik user.
 
 Fitur:
 
-- relasi `items.product`, `payment`, `shipping`
+- relasi `items.product`, `payment`, `shipping`, `renewalAsset`, `selectedAsset.qrCodes`
 - paginasi `15` item per halaman
 
 ### GET `/orders/{order}`
@@ -714,6 +908,8 @@ Relasi yang dimuat:
 - `payment`
 - `shipping`
 - `subscriptions.asset`
+- `renewalAsset`
+- `selectedAsset.qrCodes`
 
 Jika order bukan milik user, respons `403`.
 
@@ -879,46 +1075,11 @@ Contoh respons `200`:
 
 ### POST `/user/renewal/checkout`
 
-Checkout paket perpanjangan langganan dan menghasilkan Snap token Midtrans.
+Endpoint legacy khusus renewal yang masih dipertahankan untuk kompatibilitas aplikasi lama.
 
-Request body:
+Untuk implementasi mobile baru, disarankan migrasi ke endpoint unified checkout:
 
-```json
-{
-    "product_id": 7,
-    "quantity": 1,
-    "renewal_asset_id": 5,
-    "customer_name": "Budi",
-    "customer_email": "budi@example.com",
-    "customer_phone": "08123456789"
-}
-```
-
-Field:
-
-- `product_id`: required, harus ada di products
-- `quantity`: nullable, integer, min 1, max 10, default `1`
-- `renewal_asset_id`: nullable, asset milik user
-- `customer_name`: nullable, string, max 255
-- `customer_email`: nullable, email, max 255
-- `customer_phone`: nullable, string, max 20
-
-Contoh respons `201`:
-
-```json
-{
-    "message": "Checkout renewal berhasil dibuat.",
-    "order_id": 124,
-    "snap_token": "midtrans-snap-token",
-    "midtrans_order_id": "FOMI-124-1710400500",
-    "check_status_url": "https://domain-anda/api/midtrans/check-status"
-}
-```
-
-Catatan:
-
-- Jika `renewal_asset_id` diisi, sistem memastikan asset tersebut milik user login
-- Produk harus bertipe `digital` dan punya paket subscription bawaan
+- `POST /user/shop/checkout` dengan payload `items` + `renewal_asset_id`
 
 ### GET `/user/qrcodes`
 
@@ -1011,6 +1172,8 @@ Relasi yang dimuat:
 - `items.product`
 - `shipping`
 - `payment`
+- `selectedAsset.qrCodes`
+- `renewalAsset`
 
 ### GET `/user/orders/{order}`
 
@@ -1156,6 +1319,7 @@ Contoh respons `200`:
 - `GET /assets/{asset}/scan-logs`
 - `GET /assets/{asset}/chats`
 - `POST /assets/{asset}/chats`
+- `GET /orders/checkout/context`
 - `POST /orders/checkout`
 - `GET /orders`
 - `GET /orders/{order}`
@@ -1163,6 +1327,11 @@ Contoh respons `200`:
 - `POST /merchandise/activate`
 - `GET /merchandise/my-items`
 - `GET /user/dashboard`
+- `GET /user/shop/checkout/context`
+- `POST /user/shop/checkout`
+- `GET /user/shop/checkout/addresses`
+- `POST /user/shop/checkout/addresses`
+- `DELETE /user/shop/checkout/addresses/{address}`
 - `GET /user/renewal/packages`
 - `POST /user/renewal/checkout`
 - `GET /user/qrcodes`

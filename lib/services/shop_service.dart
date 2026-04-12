@@ -40,8 +40,34 @@ class ShopService {
     );
   }
 
+  /// Fetch checkout context: customer info, active_qr_assets, saved_addresses,
+  /// available_shipping_couriers, renewal_targets, midtrans config.
+  Future<Map<String, dynamic>> getCheckoutContext() async {
+    final response = await _apiClient.dio.get('/user/shop/checkout/context');
+    if (response.data is Map<String, dynamic>) {
+      return response.data as Map<String, dynamic>;
+    }
+    return {};
+  }
+
+  /// Calculate shipping cost via backend (RajaOngkir proxy).
+  /// [regencyId] destination regency id, [courier] e.g. 'jne', 'j&t'.
+  Future<dynamic> getShippingCosts({
+    required int regencyId,
+    required String courier,
+    required int totalWeight,
+  }) async {
+    final response = await _apiClient.dio.post('/shipping/cost', data: {
+      'destination': regencyId,
+      'weight': totalWeight,
+      'courier': courier,
+    });
+    return response.data;
+  }
+
   Future<Map<String, dynamic>> checkout(Map<String, dynamic> data) async {
-    final response = await _apiClient.dio.post('/orders/checkout', data: data);
+    final response =
+        await _apiClient.dio.post('/user/shop/checkout', data: data);
     if (response.data is Map<String, dynamic>) {
       return response.data as Map<String, dynamic>;
     }
