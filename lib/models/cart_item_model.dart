@@ -1,3 +1,5 @@
+import '../core/product_type.dart';
+
 class CartItemModel {
   CartItemModel({
     required this.id,
@@ -44,7 +46,10 @@ class CartItemModel {
       attributeValue: json['attribute_value']?.toString(),
       price: (json['price'] as num?)?.toInt() ?? 0,
       imageUrl: json['image_url']?.toString(),
-      type: json['type']?.toString() ?? 'physical',
+      type: normalizeProductType(
+        json['type']?.toString(),
+        fallback: 'physical',
+      ),
       stock: (json['stock'] as num?)?.toInt() ?? 0,
       quantity: (json['quantity'] as num?)?.toInt() ?? 1,
     );
@@ -62,7 +67,7 @@ class CartItemModel {
         'attribute_value': attributeValue,
         'price': price,
         'image_url': imageUrl,
-        'type': type,
+        'type': normalizeProductType(type, fallback: 'physical'),
         'stock': stock,
         'quantity': quantity,
       };

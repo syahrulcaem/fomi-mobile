@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
 
 import '../../core/app_theme.dart';
+import '../../core/product_type.dart';
 import '../../models/checkout_address_model.dart';
 import '../../providers/cart_provider.dart';
 import '../../services/shop_service.dart';
@@ -153,7 +154,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   bool _isPhysicalType(String type) {
-    return type.trim().toLowerCase() == 'physical';
+    return isPhysicalProductType(type);
+  }
+
+  bool _isDigitalType(String type) {
+    return isDigitalProductType(type);
   }
 
   bool _hasPhysicalProducts(CartProvider cart) {
@@ -161,7 +166,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   bool _hasDigitalProducts(CartProvider cart) {
-    return cart.items.any((item) => !_isPhysicalType(item.type));
+    return cart.items.any((item) => _isDigitalType(item.type));
   }
 
   List<dynamic> _extractShippingRows(dynamic raw) {
@@ -1109,8 +1114,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                                '${_selectedCourier?.toUpperCase()}',
+                            Text('${_selectedCourier?.toUpperCase()}',
                                 style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w700,
@@ -1288,8 +1292,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           // Recipient info
           _sectionTitle('Penerima', Icons.person_rounded),
           const SizedBox(height: 10),
-          _reviewTile(Icons.person_outline, _nameCtrl.text,
-              '${_emailCtrl.text} '),
+          _reviewTile(
+              Icons.person_outline, _nameCtrl.text, '${_emailCtrl.text} '),
 
           const SizedBox(height: 100),
         ],
@@ -1489,7 +1493,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Widget _typeBadge(String type) {
-    final isPhysical = type == 'physical';
+    final isPhysical = _isPhysicalType(type);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
@@ -1567,6 +1571,3 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 }
-
-
-

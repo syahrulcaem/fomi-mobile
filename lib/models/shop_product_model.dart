@@ -1,3 +1,5 @@
+import '../core/product_type.dart';
+
 class ProductVariant {
   ProductVariant({
     required this.id,
@@ -122,17 +124,15 @@ class ShopProduct {
     final candidates = <String?>[primaryType, secondaryType, categoryHint];
 
     for (final candidate in candidates) {
-      if (candidate == null) {
-        continue;
-      }
-
-      final normalized = candidate.trim().toLowerCase();
-      if (normalized == 'physical' || normalized == 'digital') {
+      final normalized = normalizeProductType(candidate, fallback: '');
+      if (normalized.isNotEmpty) {
         return normalized;
       }
     }
 
-    final fallback = primaryType?.trim() ?? '';
-    return fallback.toLowerCase();
+    return normalizeProductType(
+      [primaryType, secondaryType, categoryHint].whereType<String>().join(' '),
+      fallback: 'physical',
+    );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/product_type.dart';
 import '../models/cart_item_model.dart';
 import '../services/cart_service.dart';
 
@@ -35,7 +36,7 @@ class CartProvider extends ChangeNotifier {
 
   Future<bool> addToCart(CartItemModel item) async {
     // Check stock for physical products
-    if (item.type == 'physical' && item.stock <= 0) {
+    if (isPhysicalProductType(item.type) && item.stock <= 0) {
       return false;
     }
     await _cartService.addToCart(item);
@@ -45,8 +46,9 @@ class CartProvider extends ChangeNotifier {
   }
 
   Future<void> updateQuantity(String cartKey, int qty) async {
-    final item = _items.firstWhere((e) => e.cartKey == cartKey, orElse: () => _items.first);
-    if (item.type == 'physical' && qty > item.stock) return;
+    final item = _items.firstWhere((e) => e.cartKey == cartKey,
+        orElse: () => _items.first);
+    if (isPhysicalProductType(item.type) && qty > item.stock) return;
     await _cartService.updateQuantity(cartKey, qty);
     _items = await _cartService.getCart();
     notifyListeners();
