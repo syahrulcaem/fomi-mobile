@@ -1,4 +1,4 @@
-﻿import 'dart:typed_data';
+import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -17,22 +17,64 @@ class DigitalProductsScreen extends StatefulWidget {
 }
 
 class _DigitalProductsScreenState extends State<DigitalProductsScreen> {
+  static UserDigitalProductsResponse? _sessionPayload;
+  static String? _sessionSelectedAssetId;
+  static final Map<String, Uint8List> _sessionPreviewBytesByKey =
+      <String, Uint8List>{};
+  static final Set<String> _sessionPreviewFailedKeys = <String>{};
+
   bool _loading = false;
   String? _error;
   UserDigitalProductsResponse? _payload;
   String? _selectedAssetId;
   String? _activeActionKey;
-  final Map<String, Uint8List> _previewBytesByKey = <String, Uint8List>{};
   final Set<String> _previewLoadingKeys = <String>{};
-  final Set<String> _previewFailedKeys = <String>{};
 
   @override
   void initState() {
     super.initState();
+    if (_sessionPayload != null) {
+      _hydrateFromSessionCache(notify: false);
+      _prefetchPreviews(_sessionPayload!.items);
+      return;
+    }
     _load();
   }
 
-  Future<void> _load() async {
+  void _hydrateFromSessionCache({bool notify = true}) {
+    final payload = _sessionPayload;
+    final assets = payload?.activeQrAssets ?? const <UserDigitalProductAsset>[];
+    final cachedSelected = _sessionSelectedAssetId;
+    final hasCached = cachedSelected != null &&
+        assets.any((asset) => asset.id == cachedSelected);
+
+    final nextSelected = hasCached
+        ? cachedSelected
+        : (assets.isNotEmpty ? assets.first.id : null);
+
+    if (!notify) {
+      _payload = payload;
+      _selectedAssetId = nextSelected;
+      _error = null;
+      _loading = false;
+      return;
+    }
+
+    setState(() {
+      _payload = payload;
+      _selectedAssetId = nextSelected;
+      _error = null;
+      _loading = false;
+    });
+  }
+
+  Future<void> _load({bool forceRefresh = false}) async {
+    if (!forceRefresh && _sessionPayload != null) {
+      _hydrateFromSessionCache();
+      _prefetchPreviews(_sessionPayload!.items);
+      return;
+    }
+
     setState(() {
       _loading = true;
       _error = null;
@@ -57,7 +99,8 @@ class _DigitalProductsScreenState extends State<DigitalProductsScreen> {
             : (assets.isNotEmpty ? assets.first.id : null);
       });
 
-      _resetPreviewCache();
+      _sessionPayload = response;
+      _sessionSelectedAssetId = _selectedAssetId;
       _prefetchPreviews(response.items);
     } on DioException catch (e) {
       if (!mounted) {
@@ -108,7 +151,7 @@ class _DigitalProductsScreenState extends State<DigitalProductsScreen> {
 
   Future<void> _preview(UserDigitalProductItem item) async {
     final key = _previewCacheKey(item.id);
-    final bytes = _previewBytesByKey[key];
+    final bytes = _sessionPreviewBytesByKey[key];
     if (bytes == null || bytes.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Preview belum tersedia.')),
@@ -124,12 +167,6 @@ class _DigitalProductsScreenState extends State<DigitalProductsScreen> {
 
   String _previewCacheKey(String productId) {
     return '$productId::${_selectedAssetId ?? 'default'}';
-  }
-
-  void _resetPreviewCache() {
-    _previewBytesByKey.clear();
-    _previewLoadingKeys.clear();
-    _previewFailedKeys.clear();
   }
 
   void _prefetchPreviews(List<UserDigitalProductItem> items) {
@@ -148,15 +185,15 @@ class _DigitalProductsScreenState extends State<DigitalProductsScreen> {
     }
 
     if (!force &&
-        (_previewBytesByKey.containsKey(cacheKey) ||
-            _previewFailedKeys.contains(cacheKey))) {
+        (_sessionPreviewBytesByKey.containsKey(cacheKey) ||
+            _sessionPreviewFailedKeys.contains(cacheKey))) {
       return;
     }
 
     if (mounted) {
       setState(() {
         _previewLoadingKeys.add(cacheKey);
-        _previewFailedKeys.remove(cacheKey);
+        _sessionPreviewFailedKeys.remove(cacheKey);
       });
     }
 
@@ -173,9 +210,10 @@ class _DigitalProductsScreenState extends State<DigitalProductsScreen> {
 
       setState(() {
         if (bytes.isNotEmpty) {
-          _previewBytesByKey[cacheKey] = bytes;
+          _sessionPreviewBytesByKey[cacheKey] = bytes;
+          _sessionPreviewFailedKeys.remove(cacheKey);
         } else {
-          _previewFailedKeys.add(cacheKey);
+          _sessionPreviewFailedKeys.add(cacheKey);
         }
       });
     } catch (_) {
@@ -183,7 +221,7 @@ class _DigitalProductsScreenState extends State<DigitalProductsScreen> {
         return;
       }
       setState(() {
-        _previewFailedKeys.add(cacheKey);
+        _sessionPreviewFailedKeys.add(cacheKey);
       });
     } finally {
       if (mounted) {
@@ -219,6 +257,9 @@ class _DigitalProductsScreenState extends State<DigitalProductsScreen> {
       final fileName =
           'sticker-${item.id}-${DateTime.now().millisecondsSinceEpoch}.png';
       final savedPath = await savePngToLocal(bytes: bytes, fileName: fileName);
+      final previewKey = _previewCacheKey(item.id);
+      _sessionPreviewBytesByKey[previewKey] = bytes;
+      _sessionPreviewFailedKeys.remove(previewKey);
 
       if (!mounted) {
         return;
@@ -226,7 +267,13 @@ class _DigitalProductsScreenState extends State<DigitalProductsScreen> {
 
       if (savedPath != null && savedPath.isNotEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Berhasil disimpan di $savedPath')),
+          SnackBar(
+            content: Text(
+              savedPath == 'gallery'
+                  ? 'Berhasil disimpan ke Gallery.'
+                  : 'Berhasil disimpan di $savedPath',
+            ),
+          ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -339,7 +386,7 @@ class _DigitalProductsScreenState extends State<DigitalProductsScreen> {
         title: const Text('Produk Digital Saya'),
       ),
       body: RefreshIndicator(
-        onRefresh: _load,
+        onRefresh: () => _load(forceRefresh: true),
         child: _loading
             ? const Center(child: CircularProgressIndicator())
             : _error != null
@@ -362,7 +409,7 @@ class _DigitalProductsScreenState extends State<DigitalProductsScreen> {
                             ),
                             const SizedBox(height: 10),
                             ElevatedButton(
-                              onPressed: _load,
+                              onPressed: () => _load(forceRefresh: true),
                               child: const Text('Coba Lagi'),
                             ),
                           ],
@@ -437,7 +484,7 @@ class _DigitalProductsScreenState extends State<DigitalProductsScreen> {
                   (asset) => DropdownMenuItem<String>(
                     value: asset.id,
                     child: Text(
-                      '${asset.name}',
+                      asset.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -450,7 +497,7 @@ class _DigitalProductsScreenState extends State<DigitalProductsScreen> {
                     (asset) => Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        '${asset.name}',
+                        asset.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -463,7 +510,7 @@ class _DigitalProductsScreenState extends State<DigitalProductsScreen> {
                 return;
               }
               setState(() => _selectedAssetId = value);
-              _resetPreviewCache();
+              _sessionSelectedAssetId = value;
               _prefetchPreviews(
                   _payload?.items ?? const <UserDigitalProductItem>[]);
             },
@@ -477,9 +524,9 @@ class _DigitalProductsScreenState extends State<DigitalProductsScreen> {
     final downloadActionKey = 'download:${item.id}';
     final downloadLoading = _activeActionKey == downloadActionKey;
     final previewKey = _previewCacheKey(item.id);
-    final previewBytes = _previewBytesByKey[previewKey];
+    final previewBytes = _sessionPreviewBytesByKey[previewKey];
     final previewLoading = _previewLoadingKeys.contains(previewKey);
-    final previewFailed = _previewFailedKeys.contains(previewKey);
+    final previewFailed = _sessionPreviewFailedKeys.contains(previewKey);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -596,7 +643,3 @@ class _DigitalProductsScreenState extends State<DigitalProductsScreen> {
     );
   }
 }
-
-
-
-

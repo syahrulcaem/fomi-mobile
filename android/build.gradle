@@ -1,3 +1,6 @@
+import groovy.xml.XmlSlurper
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 allprojects {
     repositories {
         google()
@@ -11,6 +14,53 @@ subprojects {
 }
 subprojects {
     project.evaluationDependsOn(":app")
+}
+
+subprojects { subproject ->
+    subproject.plugins.withId("com.android.library") {
+        def androidExtension = subproject.extensions.findByName("android")
+        if (androidExtension == null || !androidExtension.hasProperty("namespace")) {
+            return
+        }
+
+        def namespaceValue = androidExtension.namespace
+        if (namespaceValue != null && namespaceValue.toString().trim()) {
+            return
+        }
+
+        def manifestFile = new File(subproject.projectDir, "src/main/AndroidManifest.xml")
+        if (!manifestFile.exists()) {
+            return
+        }
+
+        def manifest = new XmlSlurper(false, false).parse(manifestFile)
+        def manifestPackage = manifest.@package?.text()
+        if (manifestPackage != null && manifestPackage.trim()) {
+            androidExtension.namespace = manifestPackage
+        }
+    }
+}
+
+subprojects { subproject ->
+    if (subproject.name != "image_gallery_saver") {
+        return
+    }
+
+    subproject.plugins.withId("com.android.library") {
+        def androidExtension = subproject.extensions.findByName("android")
+        if (androidExtension != null && androidExtension.hasProperty("compileOptions")) {
+            androidExtension.compileOptions {
+                sourceCompatibility JavaVersion.VERSION_17
+                targetCompatibility JavaVersion.VERSION_17
+            }
+        }
+    }
+
+    subproject.tasks.withType(KotlinCompile).configureEach {
+        kotlinOptions {
+            jvmTarget = "17"
+        }
+    }
 }
 
 tasks.register("clean", Delete) {
