@@ -2,18 +2,44 @@ import 'package:dio/dio.dart';
 
 class CheckoutItemPayload {
   CheckoutItemPayload({
-    required this.productId,
+    this.productId,
+    this.subscriptionPlanId,
     required this.quantity,
     this.variantId,
-  });
+  }) : assert(
+          ((productId != null && productId.trim().isNotEmpty) ? 1 : 0) +
+                  ((subscriptionPlanId != null &&
+                          subscriptionPlanId.trim().isNotEmpty)
+                      ? 1
+                      : 0) ==
+              1,
+          'Exactly one of productId or subscriptionPlanId must be provided.',
+        );
 
-  final String productId;
+  final String? productId;
+  final String? subscriptionPlanId;
   final int quantity;
   final String? variantId;
 
+  String? get normalizedProductId => _trimOrNull(productId);
+  String? get normalizedSubscriptionPlanId => _trimOrNull(subscriptionPlanId);
+
+  static String? _trimOrNull(String? value) {
+    if (value == null) {
+      return null;
+    }
+    final trimmed = value.trim();
+    return trimmed.isEmpty ? null : trimmed;
+  }
+
   Map<String, dynamic> toJson() {
+    final productId = normalizedProductId;
+    final subscriptionPlanId = normalizedSubscriptionPlanId;
+
     return <String, dynamic>{
-      'product_id': productId,
+      if (productId != null) 'product_id': productId,
+      if (subscriptionPlanId != null)
+        'subscription_plan_id': subscriptionPlanId,
       'quantity': quantity,
       if (variantId != null && variantId!.trim().isNotEmpty)
         'variant_id': variantId!.trim(),
@@ -98,7 +124,14 @@ class CheckoutUnifiedRequest {
 
     for (var i = 0; i < items.length; i++) {
       final item = items[i];
-      fields['items[$i][product_id]'] = item.productId;
+      final productId = item.normalizedProductId;
+      final subscriptionPlanId = item.normalizedSubscriptionPlanId;
+      if (productId != null) {
+        fields['items[$i][product_id]'] = productId;
+      }
+      if (subscriptionPlanId != null) {
+        fields['items[$i][subscription_plan_id]'] = subscriptionPlanId;
+      }
       fields['items[$i][quantity]'] = item.quantity;
       final variantId = _trimOrNull(item.variantId);
       if (variantId != null) {

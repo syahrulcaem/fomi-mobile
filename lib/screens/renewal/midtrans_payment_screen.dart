@@ -27,6 +27,7 @@ class _MidtransPaymentScreenState extends State<MidtransPaymentScreen> {
   String _statusMessage = 'Waiting payment action...';
   bool _checking = false;
   bool _initializingWindowsWebView = false;
+  bool _showDeepLinkFallback = false;
 
   bool get _supportsMobileWebView {
     if (kIsWeb) {
@@ -52,12 +53,29 @@ class _MidtransPaymentScreenState extends State<MidtransPaymentScreen> {
         ..setJavaScriptMode(JavaScriptMode.unrestricted)
         ..setNavigationDelegate(
           NavigationDelegate(
+            onNavigationRequest: _handleNavigationRequest,
             onPageFinished: (url) {
               if (url.contains('finish') ||
                   url.contains('pending') ||
                   url.contains('success')) {
                 _checkStatus();
               }
+            },
+            onWebResourceError: (error) {
+              final description = error.description.toLowerCase();
+              if (description.contains('err_unknown_url_scheme')) {
+                setState(() {
+                  _showDeepLinkFallback = true;
+                  _statusMessage =
+                      'Aplikasi pembayaran belum tersedia di perangkat ini. Cek status pembayaran atau buka halaman di browser eksternal.';
+                });
+                return;
+              }
+
+              setState(() {
+                _statusMessage =
+                    'Halaman pembayaran gagal dimuat. Gunakan Cek Status untuk konfirmasi.';
+              });
             },
           ),
         )
@@ -115,6 +133,34 @@ class _MidtransPaymentScreenState extends State<MidtransPaymentScreen> {
         const SnackBar(content: Text('Gagal membuka browser eksternal.')),
       );
     }
+  }
+
+  bool _isWebScheme(Uri uri) {
+    final scheme = uri.scheme.toLowerCase();
+    return scheme == 'http' ||
+        scheme == 'https' ||
+        scheme == 'about' ||
+        scheme == 'data' ||
+        scheme == 'javascript';
+  }
+
+  Future<NavigationDecision> _handleNavigationRequest(
+    NavigationRequest request,
+  ) async {
+    final uri = Uri.tryParse(request.url);
+    if (uri == null || _isWebScheme(uri)) {
+      return NavigationDecision.navigate;
+    }
+
+    final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!launched && mounted) {
+      setState(() {
+        _showDeepLinkFallback = true;
+        _statusMessage =
+            'Aplikasi pembayaran tidak ditemukan. Silakan cek status pembayaran atau lanjutkan via browser eksternal.';
+      });
+    }
+    return NavigationDecision.prevent;
   }
 
   @override
@@ -178,45 +224,73 @@ class _MidtransPaymentScreenState extends State<MidtransPaymentScreen> {
             child: Text(_statusMessage),
           ),
           Expanded(
-            child: _supportsMobileWebView
-                ? WebViewWidget(controller: _controller!)
-                : _supportsWindowsWebView
-                    ? (_windowsController != null
-                        ? windows_webview.Webview(
-                            _windowsController!,
-                          )
+            child: _showDeepLinkFallback
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.open_in_new_off,
+                            size: 52,
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'Aplikasi pembayaran tidak tersedia di perangkat ini.',
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 12),
+                          ElevatedButton(
+                            onPressed: _checking ? null : _checkStatus,
+                            child: const Text('Cek Status Pembayaran'),
+                          ),
+                          const SizedBox(height: 8),
+                          OutlinedButton(
+                            onPressed: _openExternal,
+                            child: const Text('Buka di Browser Eksternal'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : _supportsMobileWebView
+                    ? WebViewWidget(controller: _controller!)
+                    : _supportsWindowsWebView
+                        ? (_windowsController != null
+                            ? windows_webview.Webview(
+                                _windowsController!,
+                              )
+                            : Center(
+                                child: _initializingWindowsWebView
+                                    ? const CircularProgressIndicator()
+                                    : ElevatedButton(
+                                        onPressed: _openExternal,
+                                        child: const Text('Open Payment Page'),
+                                      ),
+                              ))
                         : Center(
-                            child: _initializingWindowsWebView
-                                ? const CircularProgressIndicator()
-                                : ElevatedButton(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Text(
+                                    'WebView tidak tersedia di platform ini. Buka pembayaran di browser eksternal.',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  ElevatedButton(
                                     onPressed: _openExternal,
                                     child: const Text('Open Payment Page'),
                                   ),
-                          ))
-                    : Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Text(
-                                'WebView tidak tersedia di platform ini. Buka pembayaran di browser eksternal.',
-                                textAlign: TextAlign.center,
+                                ],
                               ),
-                              const SizedBox(height: 12),
-                              ElevatedButton(
-                                onPressed: _openExternal,
-                                child: const Text('Open Payment Page'),
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
-                      ),
           ),
         ],
       ),
     );
   }
 }
-
-

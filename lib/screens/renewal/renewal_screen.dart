@@ -103,7 +103,7 @@ class _RenewalScreenState extends State<RenewalScreen> {
     try {
       final service = context.read<RenewalService>();
       final result = await service.checkoutRenewal(
-        productId: item.id,
+        subscriptionPlanId: item.id,
         quantity: 1,
         renewalAssetId: _mode == _SubscriptionCheckoutMode.renew
             ? _selectedRenewalTarget?.id
@@ -489,7 +489,3 @@ class _EmptyPackagesState extends StatelessWidget {
     );
   }
 }
-
-
-
-

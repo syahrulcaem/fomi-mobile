@@ -15,11 +15,23 @@ class RenewalService {
     final data = response.data;
 
     if (data is Map<String, dynamic>) {
+      final envelopeData = data['data'] is Map<String, dynamic>
+          ? data['data'] as Map<String, dynamic>
+          : null;
+
       final list = data['data'] is List
           ? data['data'] as List
           : data['packages'] is List
               ? data['packages'] as List
-              : <dynamic>[];
+              : data['subscription_plans'] is List
+                  ? data['subscription_plans'] as List
+                  : envelopeData?['packages'] is List
+                      ? envelopeData!['packages'] as List
+                      : envelopeData?['plans'] is List
+                          ? envelopeData!['plans'] as List
+                          : envelopeData?['subscription_plans'] is List
+                              ? envelopeData!['subscription_plans'] as List
+                              : <dynamic>[];
       return list
           .whereType<Map<String, dynamic>>()
           .map(RenewalPackageModel.fromJson)
@@ -37,7 +49,7 @@ class RenewalService {
   }
 
   Future<CheckoutResultModel> checkoutRenewal({
-    required String productId,
+    required String subscriptionPlanId,
     int quantity = 1,
     String? renewalAssetId,
     String? customerName,
@@ -52,7 +64,7 @@ class RenewalService {
     final request = CheckoutUnifiedRequest(
       items: [
         CheckoutItemPayload(
-          productId: productId,
+          subscriptionPlanId: subscriptionPlanId,
           quantity: quantity,
         ),
       ],
@@ -85,7 +97,7 @@ class RenewalService {
   }
 
   Future<CheckoutResultModel> checkoutRenewalLegacy({
-    required String productId,
+    required String subscriptionPlanId,
     int quantity = 1,
     String? renewalAssetId,
     String? customerName,
@@ -96,7 +108,7 @@ class RenewalService {
     final response = await _apiClient.dio.post(
       '/user/renewal/checkout',
       data: {
-        'product_id': productId,
+        'subscription_plan_id': subscriptionPlanId,
         'quantity': quantity,
         'renewal_asset_id': renewalAssetId,
         'customer_name': customerName,

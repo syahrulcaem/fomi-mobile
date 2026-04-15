@@ -68,11 +68,15 @@ export interface ProfileResponse extends User {
 }
 
 export interface RenewalPackage {
-  id: number;
+  // Preferred identifier for new contract.
+  subscription_plan_id?: string | number;
+  // Legacy / fallback id from older payloads.
+  id?: string | number;
   name: string;
   description?: string;
   price: number;
-  barcode_quota: number;
+  barcode_quota?: number;
+  qr_quota?: number;
 }
 
 export interface CheckoutResponse {
