@@ -46,8 +46,33 @@ subprojects { subproject ->
         return
     }
 
-    subproject.plugins.withId("com.android.library") {
+    def forceImageGallerySaverSdk = {
         def androidExtension = subproject.extensions.findByName("android")
+        if (androidExtension == null) {
+            return
+        }
+
+        // image_gallery_saver 2.0.3 pins compileSdkVersion 30, which causes
+        // android:attr/lStar link failures on newer AndroidX dependencies.
+        if (androidExtension.hasProperty("compileSdk")) {
+            androidExtension.compileSdk = 34
+        } else {
+            androidExtension.compileSdkVersion 34
+        }
+    }
+
+    subproject.plugins.withId("com.android.library") {
+        forceImageGallerySaverSdk.call()
+
+        def androidComponents = subproject.extensions.findByName("androidComponents")
+        if (androidComponents != null) {
+            androidComponents.finalizeDsl { _ ->
+                forceImageGallerySaverSdk.call()
+            }
+        }
+
+        def androidExtension = subproject.extensions.findByName("android")
+
         if (androidExtension != null && androidExtension.hasProperty("compileOptions")) {
             androidExtension.compileOptions {
                 sourceCompatibility JavaVersion.VERSION_17
