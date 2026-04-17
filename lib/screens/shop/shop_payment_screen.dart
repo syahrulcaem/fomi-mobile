@@ -1,12 +1,12 @@
-﻿import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_windows/webview_windows.dart' as windows_webview;
 
 import '../../core/app_theme.dart';
+import '../../core/external_url_launcher.dart';
 import '../../providers/cart_provider.dart';
 import '../../services/shop_service.dart';
 
@@ -53,12 +53,28 @@ class _ShopPaymentScreenState extends State<ShopPaymentScreen> {
         ..setJavaScriptMode(JavaScriptMode.unrestricted)
         ..setNavigationDelegate(NavigationDelegate(
           onNavigationRequest: (request) async {
+            debugPrint(
+              '[ShopPayment][Navigation] main=${request.isMainFrame} '
+              'url=${request.url}',
+            );
+
             final uri = Uri.tryParse(request.url);
             if (uri == null) {
               return NavigationDecision.navigate;
             }
 
             _captureOrderIdFromNavigationUrl(request.url);
+
+            if (!_isWebScheme(uri)) {
+              final launched = await ExternalUrlLauncher.launch(request.url);
+              if (!launched && mounted) {
+                setState(() {
+                  _statusMessage =
+                      'Aplikasi pembayaran tidak ditemukan. Coba Cek Status atau buka browser eksternal.';
+                });
+              }
+              return NavigationDecision.prevent;
+            }
 
             // Midtrans redirect URL sometimes uses http callback placeholders
             // (e.g. example.com). Intercept before WebView tries to load it.
@@ -123,7 +139,7 @@ class _ShopPaymentScreenState extends State<ShopPaymentScreen> {
   Future<void> _openExternal() async {
     final uri = Uri.tryParse(widget.snapUrl);
     if (uri == null) return;
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
+    await ExternalUrlLauncher.launch(widget.snapUrl);
   }
 
   String? _extractOrderIdFromUrl(String rawUrl) {
@@ -180,6 +196,15 @@ class _ShopPaymentScreenState extends State<ShopPaymentScreen> {
 
   bool _isCleartextHttp(Uri uri) {
     return uri.scheme.toLowerCase() == 'http';
+  }
+
+  bool _isWebScheme(Uri uri) {
+    final scheme = uri.scheme.toLowerCase();
+    return scheme == 'http' ||
+        scheme == 'https' ||
+        scheme == 'about' ||
+        scheme == 'data' ||
+        scheme == 'javascript';
   }
 
   bool _isCallbackPlaceholder(Uri uri) {
@@ -372,6 +397,3 @@ class _ShopPaymentScreenState extends State<ShopPaymentScreen> {
     );
   }
 }
-
-
-

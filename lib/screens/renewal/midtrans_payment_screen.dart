@@ -1,10 +1,10 @@
 ﻿import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_windows/webview_windows.dart' as windows_webview;
 
+import '../../core/external_url_launcher.dart';
 import '../../services/renewal_service.dart';
 
 class MidtransPaymentScreen extends StatefulWidget {
@@ -127,7 +127,7 @@ class _MidtransPaymentScreenState extends State<MidtransPaymentScreen> {
       return;
     }
 
-    final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    final ok = await ExternalUrlLauncher.launch(widget.snapUrl);
     if (!ok && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Gagal membuka browser eksternal.')),
@@ -147,12 +147,17 @@ class _MidtransPaymentScreenState extends State<MidtransPaymentScreen> {
   Future<NavigationDecision> _handleNavigationRequest(
     NavigationRequest request,
   ) async {
+    debugPrint(
+      '[MidtransPayment][Navigation] main=${request.isMainFrame} '
+      'url=${request.url}',
+    );
+
     final uri = Uri.tryParse(request.url);
     if (uri == null || _isWebScheme(uri)) {
       return NavigationDecision.navigate;
     }
 
-    final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    final launched = await ExternalUrlLauncher.launch(request.url);
     if (!launched && mounted) {
       setState(() {
         _showDeepLinkFallback = true;
