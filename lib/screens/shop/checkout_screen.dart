@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 import '../../core/app_theme.dart';
 import '../../core/product_type.dart';
 import '../../models/checkout_address_model.dart';
+import '../../models/checkout_region_model.dart';
 import '../../providers/cart_provider.dart';
 import '../../services/shop_service.dart';
 
@@ -37,6 +38,7 @@ class _SavedAddress {
     required this.province,
     required this.city,
     required this.postalCode,
+    this.provinceId,
     required this.regencyId,
     this.districtId,
     this.districtName,
@@ -47,6 +49,7 @@ class _SavedAddress {
   final String province;
   final String city;
   final String postalCode;
+  final int? provinceId;
   final int regencyId;
   final int? districtId;
   final String? districtName;
@@ -62,6 +65,7 @@ class _SavedAddress {
             j['shipping_city']?.toString() ??
             '',
         postalCode: j['shipping_postal_code']?.toString() ?? '',
+        provinceId: (j['province_id'] as num?)?.toInt(),
         regencyId: (j['regency_id'] as num?)?.toInt() ?? 0,
         districtId: (j['district_id'] as num?)?.toInt(),
         districtName: j['district_name']?.toString(),
@@ -74,6 +78,7 @@ class _SavedAddress {
         province: model.provinceName,
         city: model.regencyName,
         postalCode: model.shippingPostalCode,
+        provinceId: model.provinceId,
         regencyId: model.regencyId ?? 0,
         districtId: model.districtId,
         districtName: model.districtName,
@@ -127,6 +132,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   List<String> _availableCouriers = [];
   int? _regencyId;
   int? _districtId;
+  List<CheckoutProvinceModel> _provinces = [];
+  List<CheckoutCityModel> _cities = [];
+  List<CheckoutDistrictModel> _districts = [];
+  int? _selectedProvinceId;
+  int? _selectedCityId;
+  bool _regionLoading = false;
+  String? _regionError;
 
   //
   _QrAsset? _selectedQr;
@@ -306,11 +318,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         final a = _savedAddresses.first;
         _selectedSavedAddress = a;
         _addressCtrl.text = a.address;
-        _provinceCtrl.text = a.province;
-        _cityCtrl.text = a.city;
         _postalCtrl.text = a.postalCode;
-        _regencyId = a.regencyId;
-        _districtId = a.districtId;
+      }
+
+      await _loadProvinces();
+
+      if (_savedAddresses.length == 1) {
+        await _applySavedAddress(_savedAddresses.first);
       }
 
       // Available couriers
@@ -328,6 +342,104 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       setState(() {
         _ctxLoading = false;
         _ctxError = 'Gagal memuat data checkout.';
+      });
+    }
+  }
+
+  Future<void> _loadProvinces() async {
+    setState(() {
+      _regionLoading = true;
+      _regionError = null;
+    });
+
+    try {
+      final svc = context.read<ShopService>();
+      final provinces = await svc.getCheckoutProvinces();
+      if (!mounted) return;
+      setState(() {
+        _provinces = provinces;
+        _regionLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _regionLoading = false;
+        _regionError = 'Gagal memuat data wilayah. Coba lagi.';
+      });
+    }
+  }
+
+  Future<void> _loadCities(int provinceId, {int? selectedCityId}) async {
+    setState(() {
+      _regionLoading = true;
+      _regionError = null;
+      _cities = [];
+      _districts = [];
+      _selectedCityId = null;
+      _selectedProvinceId = provinceId;
+      _selectedSavedAddress = null;
+      _cityCtrl.clear();
+      _provinceCtrl.text = _provinces
+              .where((item) => item.id == provinceId)
+              .map((e) => e.name)
+              .firstOrNull ??
+          '';
+      _regencyId = null;
+      _districtId = null;
+    });
+
+    try {
+      final svc = context.read<ShopService>();
+      final cities = await svc.getCheckoutCities(provinceId: provinceId);
+      if (!mounted) return;
+      setState(() {
+        _cities = cities;
+        _selectedCityId = selectedCityId != null &&
+                cities.any((item) => item.id == selectedCityId)
+            ? selectedCityId
+            : null;
+        _regencyId = _selectedCityId;
+        if (_selectedCityId != null) {
+          final selected =
+              cities.where((item) => item.id == _selectedCityId).first;
+          _cityCtrl.text = selected.name;
+        }
+        _regionLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _regionLoading = false;
+        _regionError = 'Gagal memuat data kota/kabupaten.';
+      });
+    }
+  }
+
+  Future<void> _loadDistricts(int regencyId, {int? selectedDistrictId}) async {
+    setState(() {
+      _regionLoading = true;
+      _regionError = null;
+      _districts = [];
+      _districtId = null;
+    });
+
+    try {
+      final svc = context.read<ShopService>();
+      final districts = await svc.getCheckoutDistricts(regencyId: regencyId);
+      if (!mounted) return;
+      setState(() {
+        _districts = districts;
+        _districtId = selectedDistrictId != null &&
+                districts.any((item) => item.id == selectedDistrictId)
+            ? selectedDistrictId
+            : null;
+        _regionLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _regionLoading = false;
+        _regionError = 'Gagal memuat data kecamatan.';
       });
     }
   }
@@ -505,9 +617,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       }
       // regency_id is required by API for shipping cost & checkout
       if (_regencyId == null || _regencyId == 0) {
-        _showError(
-            'Pilih salah satu alamat tersimpan agar sistem dapat menghitung ongkir. '
-            'Alamat tersimpan mengandung data wilayah (regency) yang diperlukan.');
+        _showError('Pilih kota/kabupaten terlebih dahulu.');
         return;
       }
       // district_id: use regency_id as fallback if district not available
@@ -862,14 +972,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             _sectionTitle('Alamat Tersimpan', Icons.bookmark_rounded),
             const SizedBox(height: 4),
             const Text(
-              'Pilih alamat tersimpan agar sistem bisa menghitung ongkir. Data kota/kabupaten diambil dari sini.',
+              'Pilih alamat tersimpan atau isi alamat manual dengan dropdown wilayah.',
               style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
             ),
             const SizedBox(height: 10),
             if (_savedAddresses.isEmpty)
               _infoTile(
                 Icons.warning_amber_rounded,
-                'Belum ada alamat tersimpan. Tambahkan alamat di halaman profil terlebih dahulu, lalu ulangi checkout.',
+                'Belum ada alamat tersimpan. Kamu tetap bisa isi alamat manual di bawah.',
                 isWarning: true,
               )
             else
@@ -962,17 +1072,86 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 required: true,
                 maxLines: 2),
             const SizedBox(height: 12),
-            _field(
-                ctrl: _provinceCtrl,
-                label: 'Provinsi',
-                icon: Icons.map_outlined,
-                required: true),
+            _dropdownField<int>(
+              label: 'Provinsi',
+              icon: Icons.map_outlined,
+              value: _selectedProvinceId,
+              hint: _regionLoading ? 'Memuat provinsi...' : 'Pilih provinsi',
+              items: _provinces
+                  .map((p) => DropdownMenuItem<int>(
+                        value: p.id,
+                        child: Text(p.name),
+                      ))
+                  .toList(),
+              onChanged: (value) {
+                if (value == null) return;
+                _loadCities(value);
+              },
+            ),
             const SizedBox(height: 12),
-            _field(
-                ctrl: _cityCtrl,
-                label: 'Kota / Kabupaten',
-                icon: Icons.location_city_outlined,
-                required: true),
+            _dropdownField<int>(
+              label: 'Kota / Kabupaten',
+              icon: Icons.location_city_outlined,
+              value: _selectedCityId,
+              hint: _selectedProvinceId == null
+                  ? 'Pilih provinsi dulu'
+                  : _regionLoading
+                      ? 'Memuat kota/kabupaten...'
+                      : 'Pilih kota/kabupaten',
+              items: _cities
+                  .map((c) => DropdownMenuItem<int>(
+                        value: c.id,
+                        child: Text(
+                          c.type != null && c.type!.trim().isNotEmpty
+                              ? '${c.type} ${c.name}'
+                              : c.name,
+                        ),
+                      ))
+                  .toList(),
+              onChanged: _selectedProvinceId == null
+                  ? null
+                  : (value) {
+                      if (value == null) return;
+                      final selected =
+                          _cities.where((item) => item.id == value).first;
+                      setState(() {
+                        _selectedCityId = value;
+                        _regencyId = value;
+                        _cityCtrl.text = selected.name;
+                        _selectedSavedAddress = null;
+                        _districts = [];
+                        _districtId = null;
+                      });
+                      _loadDistricts(value);
+                    },
+            ),
+            const SizedBox(height: 12),
+            _dropdownField<int>(
+              label: 'Kecamatan',
+              icon: Icons.apartment_outlined,
+              value: _districtId,
+              hint: _selectedCityId == null
+                  ? 'Pilih kota/kabupaten dulu'
+                  : _regionLoading
+                      ? 'Memuat kecamatan...'
+                      : (_districts.isEmpty
+                          ? 'Tidak ada data kecamatan (otomatis pakai kota)'
+                          : 'Pilih kecamatan'),
+              items: _districts
+                  .map((d) => DropdownMenuItem<int>(
+                        value: d.id,
+                        child: Text(d.name),
+                      ))
+                  .toList(),
+              onChanged: _selectedCityId == null || _districts.isEmpty
+                  ? null
+                  : (value) {
+                      setState(() {
+                        _districtId = value;
+                        _selectedSavedAddress = null;
+                      });
+                    },
+            ),
             const SizedBox(height: 12),
             _field(
                 ctrl: _postalCtrl,
@@ -980,6 +1159,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 icon: Icons.markunread_mailbox_outlined,
                 required: true,
                 keyboardType: TextInputType.number),
+            if (_regionError != null) ...[
+              const SizedBox(height: 10),
+              _infoTile(Icons.warning_amber_rounded, _regionError!,
+                  isWarning: true),
+            ],
             const SizedBox(height: 80),
           ],
         ],
@@ -987,16 +1171,60 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  void _applySavedAddress(_SavedAddress addr) {
+  Future<void> _applySavedAddress(_SavedAddress addr) async {
     setState(() {
       _selectedSavedAddress = addr;
       _addressCtrl.text = addr.address;
-      _provinceCtrl.text = addr.province;
-      _cityCtrl.text = addr.city;
       _postalCtrl.text = addr.postalCode;
       _regencyId = addr.regencyId;
       _districtId = addr.districtId;
     });
+
+    if (addr.provinceId != null &&
+        _provinces.any((item) => item.id == addr.provinceId)) {
+      await _loadCities(
+        addr.provinceId!,
+        selectedCityId: addr.regencyId > 0 ? addr.regencyId : null,
+      );
+      if (addr.regencyId > 0) {
+        await _loadDistricts(
+          addr.regencyId,
+          selectedDistrictId: addr.districtId,
+        );
+      }
+      if (!mounted) return;
+      setState(() {
+        _selectedProvinceId = addr.provinceId;
+        _selectedCityId = addr.regencyId > 0 ? addr.regencyId : null;
+        _districtId = addr.districtId;
+      });
+      return;
+    }
+
+    final matchedProvince = _provinces.where((item) {
+      return item.name.trim().toLowerCase() ==
+          addr.province.trim().toLowerCase();
+    }).toList();
+
+    if (matchedProvince.isNotEmpty) {
+      final province = matchedProvince.first;
+      await _loadCities(
+        province.id,
+        selectedCityId: addr.regencyId > 0 ? addr.regencyId : null,
+      );
+      if (addr.regencyId > 0) {
+        await _loadDistricts(
+          addr.regencyId,
+          selectedDistrictId: addr.districtId,
+        );
+      }
+      if (!mounted) return;
+      setState(() {
+        _selectedProvinceId = province.id;
+        _selectedCityId = addr.regencyId > 0 ? addr.regencyId : null;
+        _districtId = addr.districtId;
+      });
+    }
   }
 
   //
@@ -1558,6 +1786,49 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             borderRadius: BorderRadius.circular(16),
             borderSide:
                 const BorderSide(color: AppColors.primaryBlue, width: 2)),
+      ),
+    );
+  }
+
+  Widget _dropdownField<T>({
+    required String label,
+    required IconData icon,
+    required T? value,
+    required List<DropdownMenuItem<T>> items,
+    required ValueChanged<T?>? onChanged,
+    String? hint,
+  }) {
+    return InputDecorator(
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, size: 20, color: AppColors.primaryBlue),
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: AppColors.skyBlue)),
+        enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: AppColors.skyBlue)),
+        focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide:
+                const BorderSide(color: AppColors.primaryBlue, width: 2)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<T>(
+          value: value,
+          isExpanded: true,
+          hint: hint != null
+              ? Text(
+                  hint,
+                  style: const TextStyle(
+                      fontSize: 14, color: AppColors.textSecondary),
+                )
+              : null,
+          items: items,
+          onChanged: onChanged,
+        ),
       ),
     );
   }

@@ -86,6 +86,26 @@ export interface CheckoutResponse {
   transaction_status?: string;
 }
 
+export interface CheckoutProvince {
+  id: number;
+  name: string;
+  rajaongkir_id?: number;
+}
+
+export interface CheckoutCity {
+  id: number;
+  province_id: number;
+  type?: string;
+  name: string;
+  rajaongkir_id?: number;
+}
+
+export interface CheckoutDistrict {
+  id: number;
+  name: string;
+  type?: string;
+}
+
 export interface MidtransStatusResponse {
   order_id?: string;
   transaction_status: string;

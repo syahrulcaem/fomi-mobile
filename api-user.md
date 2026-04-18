@@ -28,10 +28,10 @@ Contoh respons validasi gagal:
 
 ```json
 {
-    "message": "The given data was invalid.",
-    "errors": {
-        "email": ["The email field is required."]
-    }
+  "message": "The given data was invalid.",
+  "errors": {
+    "email": ["The email field is required."]
+  }
 }
 ```
 
@@ -45,11 +45,11 @@ Request body:
 
 ```json
 {
-    "name": "Budi",
-    "email": "budi@example.com",
-    "phone": "08123456789",
-    "password": "password123",
-    "password_confirmation": "password123"
+  "name": "Budi",
+  "email": "budi@example.com",
+  "phone": "08123456789",
+  "password": "password123",
+  "password_confirmation": "password123"
 }
 ```
 
@@ -64,17 +64,17 @@ Contoh respons `201`:
 
 ```json
 {
-    "message": "Registration successful",
-    "user": {
-        "id": 1,
-        "name": "Budi",
-        "email": "budi@example.com",
-        "phone": "08123456789",
-        "role": "user",
-        "created_at": "2026-03-14T10:00:00.000000Z",
-        "updated_at": "2026-03-14T10:00:00.000000Z"
-    },
-    "token": "1|sanctum-token"
+  "message": "Registration successful",
+  "user": {
+    "id": 1,
+    "name": "Budi",
+    "email": "budi@example.com",
+    "phone": "08123456789",
+    "role": "user",
+    "created_at": "2026-03-14T10:00:00.000000Z",
+    "updated_at": "2026-03-14T10:00:00.000000Z"
+  },
+  "token": "1|sanctum-token"
 }
 ```
 
@@ -86,8 +86,8 @@ Request body:
 
 ```json
 {
-    "email": "budi@example.com",
-    "password": "password123"
+  "email": "budi@example.com",
+  "password": "password123"
 }
 ```
 
@@ -100,14 +100,14 @@ Contoh respons `200`:
 
 ```json
 {
-    "message": "Login successful",
-    "user": {
-        "id": 1,
-        "name": "Budi",
-        "email": "budi@example.com",
-        "phone": "08123456789"
-    },
-    "token": "2|sanctum-token"
+  "message": "Login successful",
+  "user": {
+    "id": 1,
+    "name": "Budi",
+    "email": "budi@example.com",
+    "phone": "08123456789"
+  },
+  "token": "2|sanctum-token"
 }
 ```
 
@@ -126,21 +126,21 @@ Contoh respons `200`:
 
 ```json
 [
-    {
-        "id": 1,
-        "category_id": 2,
-        "name": "QR Tag Basic",
-        "description": "Tag QR untuk barang pribadi",
-        "price": 50000,
-        "stock": 100,
-        "image": "products/qrbasic.png",
-        "type": "physical",
-        "duration_days": 30,
-        "included_subscription_plan_id": null,
-        "is_active": true,
-        "created_at": "2026-03-12T08:00:00.000000Z",
-        "updated_at": "2026-03-12T08:00:00.000000Z"
-    }
+  {
+    "id": 1,
+    "category_id": 2,
+    "name": "QR Tag Basic",
+    "description": "Tag QR untuk barang pribadi",
+    "price": 50000,
+    "stock": 100,
+    "image": "products/qrbasic.png",
+    "type": "physical",
+    "duration_days": 30,
+    "included_subscription_plan_id": null,
+    "is_active": true,
+    "created_at": "2026-03-12T08:00:00.000000Z",
+    "updated_at": "2026-03-12T08:00:00.000000Z"
+  }
 ]
 ```
 
@@ -174,10 +174,10 @@ Status normal:
 
 ```json
 {
-    "status": "normal",
-    "message": "This item is safe. Owner information is protected.",
-    "item_name": "Tas Kerja",
-    "chat_enabled": false
+  "status": "normal",
+  "message": "This item is safe. Owner information is protected.",
+  "item_name": "Tas Kerja",
+  "chat_enabled": false
 }
 ```
 
@@ -185,17 +185,17 @@ Status hilang:
 
 ```json
 {
-    "status": "lost",
-    "message": "This item has been reported as LOST. Please contact the owner.",
-    "item_name": "Tas Kerja",
-    "contact_info": {
-        "name": "Budi",
-        "phone": "08123456789",
-        "email": "budi@example.com",
-        "address": "Jakarta"
-    },
-    "chat_enabled": true,
-    "asset_id": 5
+  "status": "lost",
+  "message": "This item has been reported as LOST. Please contact the owner.",
+  "item_name": "Tas Kerja",
+  "contact_info": {
+    "name": "Budi",
+    "phone": "08123456789",
+    "email": "budi@example.com",
+    "address": "Jakarta"
+  },
+  "chat_enabled": true,
+  "asset_id": 5
 }
 ```
 
@@ -203,10 +203,10 @@ Langganan habis:
 
 ```json
 {
-    "status": "subscription_expired",
-    "message": "Subscription has ended. Owner needs to renew the subscription.",
-    "item_name": "Tas Kerja",
-    "chat_enabled": false
+  "status": "subscription_expired",
+  "message": "Subscription has ended. Owner needs to renew the subscription.",
+  "item_name": "Tas Kerja",
+  "chat_enabled": false
 }
 ```
 
@@ -218,8 +218,8 @@ Request body:
 
 ```json
 {
-    "session_id": "finder-session-123",
-    "message": "Halo, barang ini saya temukan di parkiran."
+  "session_id": "finder-session-123",
+  "message": "Halo, barang ini saya temukan di parkiran."
 }
 ```
 
@@ -232,16 +232,16 @@ Contoh respons `201`:
 
 ```json
 {
-    "message": "Message sent successfully",
-    "chat": {
-        "id": 10,
-        "asset_id": 5,
-        "sender_type": "finder",
-        "message": "Halo, barang ini saya temukan di parkiran.",
-        "session_id": "finder-session-123",
-        "created_at": "2026-03-14T10:15:00.000000Z",
-        "updated_at": "2026-03-14T10:15:00.000000Z"
-    }
+  "message": "Message sent successfully",
+  "chat": {
+    "id": 10,
+    "asset_id": 5,
+    "sender_type": "finder",
+    "message": "Halo, barang ini saya temukan di parkiran.",
+    "session_id": "finder-session-123",
+    "created_at": "2026-03-14T10:15:00.000000Z",
+    "updated_at": "2026-03-14T10:15:00.000000Z"
+  }
 }
 ```
 
@@ -264,24 +264,24 @@ Contoh respons `200`:
 
 ```json
 [
-    {
-        "id": 10,
-        "asset_id": 5,
-        "sender_type": "finder",
-        "message": "Halo, barang ini saya temukan di parkiran.",
-        "session_id": "finder-session-123",
-        "created_at": "2026-03-14T10:15:00.000000Z",
-        "updated_at": "2026-03-14T10:15:00.000000Z"
-    },
-    {
-        "id": 11,
-        "asset_id": 5,
-        "sender_type": "owner",
-        "message": "Terima kasih, apakah bisa saya ambil sore ini?",
-        "session_id": "finder-session-123",
-        "created_at": "2026-03-14T10:17:00.000000Z",
-        "updated_at": "2026-03-14T10:17:00.000000Z"
-    }
+  {
+    "id": 10,
+    "asset_id": 5,
+    "sender_type": "finder",
+    "message": "Halo, barang ini saya temukan di parkiran.",
+    "session_id": "finder-session-123",
+    "created_at": "2026-03-14T10:15:00.000000Z",
+    "updated_at": "2026-03-14T10:15:00.000000Z"
+  },
+  {
+    "id": 11,
+    "asset_id": 5,
+    "sender_type": "owner",
+    "message": "Terima kasih, apakah bisa saya ambil sore ini?",
+    "session_id": "finder-session-123",
+    "created_at": "2026-03-14T10:17:00.000000Z",
+    "updated_at": "2026-03-14T10:17:00.000000Z"
+  }
 ]
 ```
 
@@ -295,14 +295,14 @@ Contoh respons `200`:
 
 ```json
 {
-    "data": [
-        {
-            "id": 1,
-            "question": "Bagaimana cara scan QR?",
-            "answer": "Buka kamera lalu arahkan ke QR.",
-            "order": 1
-        }
-    ]
+  "data": [
+    {
+      "id": 1,
+      "question": "Bagaimana cara scan QR?",
+      "answer": "Buka kamera lalu arahkan ke QR.",
+      "order": 1
+    }
+  ]
 }
 ```
 
@@ -314,10 +314,10 @@ Request body:
 
 ```json
 {
-    "name": "Budi",
-    "email": "budi@example.com",
-    "subject": "Bantuan QR",
-    "message": "Saya ingin menanyakan status langganan saya."
+  "name": "Budi",
+  "email": "budi@example.com",
+  "subject": "Bantuan QR",
+  "message": "Saya ingin menanyakan status langganan saya."
 }
 ```
 
@@ -332,7 +332,7 @@ Contoh respons `201`:
 
 ```json
 {
-    "message": "Pesan berhasil terkirim!"
+  "message": "Pesan berhasil terkirim!"
 }
 ```
 
@@ -346,7 +346,7 @@ Request body:
 
 ```json
 {
-    "order_id": 123
+  "order_id": 123
 }
 ```
 
@@ -354,22 +354,22 @@ Kemungkinan respons `200`:
 
 ```json
 {
-    "message": "Order activated",
-    "status": "paid"
+  "message": "Order activated",
+  "status": "paid"
 }
 ```
 
 ```json
 {
-    "message": "Payment still pending",
-    "status": "pending"
+  "message": "Payment still pending",
+  "status": "pending"
 }
 ```
 
 ```json
 {
-    "message": "Order already processed",
-    "status": "processing"
+  "message": "Order already processed",
+  "status": "processing"
 }
 ```
 
@@ -389,7 +389,7 @@ Contoh respons `200`:
 
 ```json
 {
-    "message": "Logged out successfully"
+  "message": "Logged out successfully"
 }
 ```
 
@@ -413,8 +413,8 @@ Request body:
 
 ```json
 {
-    "name": "Budi Santoso",
-    "phone": "08123456789"
+  "name": "Budi Santoso",
+  "phone": "08123456789"
 }
 ```
 
@@ -427,13 +427,13 @@ Contoh respons `200`:
 
 ```json
 {
-    "message": "Profile updated",
-    "user": {
-        "id": 1,
-        "name": "Budi Santoso",
-        "email": "budi@example.com",
-        "phone": "08123456789"
-    }
+  "message": "Profile updated",
+  "user": {
+    "id": 1,
+    "name": "Budi Santoso",
+    "email": "budi@example.com",
+    "phone": "08123456789"
+  }
 }
 ```
 
@@ -463,25 +463,25 @@ Contoh respons `201`:
 
 ```json
 {
-    "id": 5,
-    "user_id": 1,
-    "name": "Tas Kerja",
-    "description": "Tas laptop hitam",
-    "image": "assets/abc123.jpg",
-    "status": "normal",
-    "contact_info": {
-        "phone": "08123456789",
-        "email": "budi@example.com",
-        "address": "Jakarta"
-    },
-    "qr_codes": [
-        {
-            "id": 8,
-            "asset_id": 5,
-            "code": "uuid-code",
-            "is_active": true
-        }
-    ]
+  "id": 5,
+  "user_id": 1,
+  "name": "Tas Kerja",
+  "description": "Tas laptop hitam",
+  "image": "assets/abc123.jpg",
+  "status": "normal",
+  "contact_info": {
+    "phone": "08123456789",
+    "email": "budi@example.com",
+    "address": "Jakarta"
+  },
+  "qr_codes": [
+    {
+      "id": 8,
+      "asset_id": 5,
+      "code": "uuid-code",
+      "is_active": true
+    }
+  ]
 }
 ```
 
@@ -503,13 +503,13 @@ Request body:
 
 ```json
 {
-    "name": "Tas Kerja Baru",
-    "description": "Tas laptop hitam ukuran 15 inci",
-    "contact_info": {
-        "phone": "08123456789",
-        "email": "budi@example.com",
-        "address": "Jakarta"
-    }
+  "name": "Tas Kerja Baru",
+  "description": "Tas laptop hitam ukuran 15 inci",
+  "contact_info": {
+    "phone": "08123456789",
+    "email": "budi@example.com",
+    "address": "Jakarta"
+  }
 }
 ```
 
@@ -528,11 +528,11 @@ Contoh respons `200`:
 
 ```json
 {
-    "message": "Status updated to lost",
-    "asset": {
-        "id": 5,
-        "status": "lost"
-    }
+  "message": "Status updated to lost",
+  "asset": {
+    "id": 5,
+    "status": "lost"
+  }
 }
 ```
 
@@ -551,26 +551,26 @@ Contoh respons `200`:
 
 ```json
 {
-    "current_page": 1,
-    "data": [
-        {
-            "id": 1,
-            "asset_id": 5,
-            "qr_code_id": 8,
-            "ip_address": "127.0.0.1",
-            "latitude": "-6.2",
-            "longitude": "106.8",
-            "location_name": "Jakarta",
-            "user_agent": "Mozilla/5.0",
-            "qr_code": {
-                "id": 8,
-                "code": "uuid-code",
-                "is_active": true
-            }
-        }
-    ],
-    "per_page": 20,
-    "total": 1
+  "current_page": 1,
+  "data": [
+    {
+      "id": 1,
+      "asset_id": 5,
+      "qr_code_id": 8,
+      "ip_address": "127.0.0.1",
+      "latitude": "-6.2",
+      "longitude": "106.8",
+      "location_name": "Jakarta",
+      "user_agent": "Mozilla/5.0",
+      "qr_code": {
+        "id": 8,
+        "code": "uuid-code",
+        "is_active": true
+      }
+    }
+  ],
+  "per_page": 20,
+  "total": 1
 }
 ```
 
@@ -582,20 +582,20 @@ Contoh respons `200`:
 
 ```json
 {
-    "finder-session-123": [
-        {
-            "id": 10,
-            "sender_type": "finder",
-            "message": "Halo, barang ini saya temukan.",
-            "session_id": "finder-session-123"
-        },
-        {
-            "id": 11,
-            "sender_type": "owner",
-            "message": "Terima kasih.",
-            "session_id": "finder-session-123"
-        }
-    ]
+  "finder-session-123": [
+    {
+      "id": 10,
+      "sender_type": "finder",
+      "message": "Halo, barang ini saya temukan.",
+      "session_id": "finder-session-123"
+    },
+    {
+      "id": 11,
+      "sender_type": "owner",
+      "message": "Terima kasih.",
+      "session_id": "finder-session-123"
+    }
+  ]
 }
 ```
 
@@ -607,8 +607,8 @@ Request body:
 
 ```json
 {
-    "session_id": "finder-session-123",
-    "message": "Terima kasih, saya akan ambil hari ini."
+  "session_id": "finder-session-123",
+  "message": "Terima kasih, saya akan ambil hari ini."
 }
 ```
 
@@ -621,13 +621,13 @@ Contoh respons `201`:
 
 ```json
 {
-    "id": 11,
-    "asset_id": 5,
-    "sender_type": "owner",
-    "message": "Terima kasih, saya akan ambil hari ini.",
-    "session_id": "finder-session-123",
-    "created_at": "2026-03-14T10:17:00.000000Z",
-    "updated_at": "2026-03-14T10:17:00.000000Z"
+  "id": 11,
+  "asset_id": 5,
+  "sender_type": "owner",
+  "message": "Terima kasih, saya akan ambil hari ini.",
+  "session_id": "finder-session-123",
+  "created_at": "2026-03-14T10:17:00.000000Z",
+  "updated_at": "2026-03-14T10:17:00.000000Z"
 }
 ```
 
@@ -643,18 +643,18 @@ Contoh respons `200`:
 
 ```json
 {
-    "data": [
-        {
-            "asset_id": "01JQ...",
-            "asset_name": "Tas Kerja",
-            "asset_status": "lost",
-            "session_id": "finder-abc123-1742280000000",
-            "last_message": "Apakah bisa saya antar malam ini?",
-            "last_sender_type": "finder",
-            "last_message_at": "2026-03-18T08:10:00.000000Z",
-            "message_count": 4
-        }
-    ]
+  "data": [
+    {
+      "asset_id": "01JQ...",
+      "asset_name": "Tas Kerja",
+      "asset_status": "lost",
+      "session_id": "finder-abc123-1742280000000",
+      "last_message": "Apakah bisa saya antar malam ini?",
+      "last_sender_type": "finder",
+      "last_message_at": "2026-03-18T08:10:00.000000Z",
+      "message_count": 4
+    }
+  ]
 }
 ```
 
@@ -666,23 +666,23 @@ Contoh respons `200`:
 
 ```json
 {
-    "asset": {
-        "id": "01JQ...",
-        "name": "Tas Kerja",
-        "status": "lost"
-    },
-    "session_id": "finder-abc123-1742280000000",
-    "data": [
-        {
-            "id": "01JQ...",
-            "asset_id": "01JQ...",
-            "sender_type": "finder",
-            "message": "Halo, saya menemukan barang ini.",
-            "session_id": "finder-abc123-1742280000000",
-            "created_at": "2026-03-18T08:00:00.000000Z",
-            "updated_at": "2026-03-18T08:00:00.000000Z"
-        }
-    ]
+  "asset": {
+    "id": "01JQ...",
+    "name": "Tas Kerja",
+    "status": "lost"
+  },
+  "session_id": "finder-abc123-1742280000000",
+  "data": [
+    {
+      "id": "01JQ...",
+      "asset_id": "01JQ...",
+      "sender_type": "finder",
+      "message": "Halo, saya menemukan barang ini.",
+      "session_id": "finder-abc123-1742280000000",
+      "created_at": "2026-03-18T08:00:00.000000Z",
+      "updated_at": "2026-03-18T08:00:00.000000Z"
+    }
+  ]
 }
 ```
 
@@ -694,7 +694,7 @@ Request body:
 
 ```json
 {
-    "message": "Siap, terima kasih infonya."
+  "message": "Siap, terima kasih infonya."
 }
 ```
 
@@ -702,16 +702,16 @@ Contoh respons `201`:
 
 ```json
 {
-    "message": "Balasan berhasil dikirim.",
-    "data": {
-        "id": "01JQ...",
-        "asset_id": "01JQ...",
-        "sender_type": "owner",
-        "message": "Siap, terima kasih infonya.",
-        "session_id": "finder-abc123-1742280000000",
-        "created_at": "2026-03-18T08:12:00.000000Z",
-        "updated_at": "2026-03-18T08:12:00.000000Z"
-    }
+  "message": "Balasan berhasil dikirim.",
+  "data": {
+    "id": "01JQ...",
+    "asset_id": "01JQ...",
+    "sender_type": "owner",
+    "message": "Siap, terima kasih infonya.",
+    "session_id": "finder-abc123-1742280000000",
+    "created_at": "2026-03-18T08:12:00.000000Z",
+    "updated_at": "2026-03-18T08:12:00.000000Z"
+  }
 }
 ```
 
@@ -723,8 +723,8 @@ Contoh respons `200`:
 
 ```json
 {
-    "message": "Percakapan berhasil dihapus.",
-    "deleted_count": 4
+  "message": "Percakapan berhasil dihapus.",
+  "deleted_count": 4
 }
 ```
 
@@ -736,7 +736,7 @@ Contoh respons `200`:
 
 ```json
 {
-    "message": "Pesan berhasil dihapus."
+  "message": "Pesan berhasil dihapus."
 }
 ```
 
@@ -746,6 +746,9 @@ Flow checkout mobile sekarang mengikuti flow checkout web terbaru (multi-step, d
 
 Endpoint utama checkout baru:
 
+- `GET /user/shop/checkout/provinces`
+- `GET /user/shop/checkout/cities`
+- `GET /user/shop/checkout/districts`
 - `POST /user/shop/checkout`
 
 Endpoint lama yang tetap tersedia (alias):
@@ -769,6 +772,86 @@ Catatan:
 
 - Endpoint alias juga tersedia di `GET /orders/checkout/context`
 
+### GET `/user/shop/checkout/provinces`
+
+Mengambil daftar provinsi untuk dropdown alamat checkout mobile.
+
+Contoh respons `200`:
+
+```json
+{
+  "success": true,
+  "message": "Daftar provinsi berhasil diambil.",
+  "data": [
+    {
+      "id": 32,
+      "name": "Jawa Barat",
+      "rajaongkir_id": 9
+    }
+  ]
+}
+```
+
+### GET `/user/shop/checkout/cities`
+
+Mengambil daftar kota/kabupaten berdasarkan provinsi terpilih.
+
+Query parameter:
+
+- `province_id`: required, integer
+
+Contoh respons `200`:
+
+```json
+{
+  "success": true,
+  "message": "Daftar kabupaten/kota berhasil diambil.",
+  "data": [
+    {
+      "id": 3273,
+      "province_id": 32,
+      "type": "Kota",
+      "name": "Bandung",
+      "rajaongkir_id": 23
+    }
+  ]
+}
+```
+
+### GET `/user/shop/checkout/districts`
+
+Mengambil daftar kecamatan berdasarkan kabupaten/kota terpilih.
+
+Query parameter:
+
+- `regency_id`: required, integer, id tabel `regencies`
+
+Contoh respons `200`:
+
+```json
+{
+  "success": true,
+  "message": "Daftar kecamatan berhasil diambil.",
+  "data": [
+    {
+      "id": 152,
+      "name": "Coblong",
+      "type": "district"
+    }
+  ]
+}
+```
+
+Contoh respons `422` jika `regency_id` tidak valid:
+
+```json
+{
+  "success": false,
+  "message": "Regency tidak valid untuk mengambil daftar kecamatan.",
+  "data": []
+}
+```
+
 ### GET `/user/shop/checkout/addresses`
 
 Mengambil daftar alamat tersimpan milik user untuk checkout.
@@ -781,13 +864,13 @@ Request body:
 
 ```json
 {
-    "label": "Rumah",
-    "shipping_address": "Jl. Melati No. 10",
-    "shipping_postal_code": "40123",
-    "province_id": 32,
-    "regency_id": 3273,
-    "district_id": 3273010,
-    "district_name": "Coblong"
+  "label": "Rumah",
+  "shipping_address": "Jl. Melati No. 10",
+  "shipping_postal_code": "40123",
+  "province_id": 32,
+  "regency_id": 3273,
+  "district_id": 3273010,
+  "district_name": "Coblong"
 }
 ```
 
@@ -803,27 +886,27 @@ Request body contoh (Midtrans, produk fisik):
 
 ```json
 {
-    "items": [
-        {
-            "product_id": "01J...",
-            "variant_id": "01J...",
-            "quantity": 1
-        }
-    ],
-    "payment_method": "midtrans",
-    "selected_asset_id": "01J...",
-    "customer_name": "Budi",
-    "customer_email": "budi@example.com",
-    "customer_phone": "08123456789",
-    "shipping_address": "Jl. Melati No. 10",
-    "shipping_city": "Kota Bandung",
-    "shipping_province": "Jawa Barat",
-    "shipping_postal_code": "40123",
-    "regency_id": 3273,
-    "district_id": 3273010,
-    "shipping_cost": 12000,
-    "shipping_courier": "jne",
-    "shipping_service": "REG"
+  "items": [
+    {
+      "product_id": "01J...",
+      "variant_id": "01J...",
+      "quantity": 1
+    }
+  ],
+  "payment_method": "midtrans",
+  "selected_asset_id": "01J...",
+  "customer_name": "Budi",
+  "customer_email": "budi@example.com",
+  "customer_phone": "08123456789",
+  "shipping_address": "Jl. Melati No. 10",
+  "shipping_city": "Kota Bandung",
+  "shipping_province": "Jawa Barat",
+  "shipping_postal_code": "40123",
+  "regency_id": 3273,
+  "district_id": 3273010,
+  "shipping_cost": 12000,
+  "shipping_courier": "jne",
+  "shipping_service": "REG"
 }
 ```
 
@@ -866,15 +949,15 @@ Contoh respons `201` (Midtrans):
 
 ```json
 {
-    "message": "Checkout berhasil dibuat.",
-    "order_id": "01J...",
-    "snap_token": "midtrans-snap-token",
-    "check_status_url": "https://domain-anda/api/midtrans/check-status",
-    "redirect_url": "https://app.sandbox.midtrans.com/snap/v2/vtweb/midtrans-snap-token",
-    "order": {
-        "id": "01J...",
-        "status": "pending"
-    }
+  "message": "Checkout berhasil dibuat.",
+  "order_id": "01J...",
+  "snap_token": "midtrans-snap-token",
+  "check_status_url": "https://domain-anda/api/midtrans/check-status",
+  "redirect_url": "https://app.sandbox.midtrans.com/snap/v2/vtweb/midtrans-snap-token",
+  "order": {
+    "id": "01J...",
+    "status": "pending"
+  }
 }
 ```
 
@@ -882,10 +965,10 @@ Contoh respons `201` (bank transfer manual):
 
 ```json
 {
-    "manual_payment": true,
-    "order_id": "01J...",
-    "order_number": "FOMI-20260409-ABC123",
-    "message": "Bukti transfer berhasil dikirim. Admin akan memverifikasi pembayaran Anda."
+  "manual_payment": true,
+  "order_id": "01J...",
+  "order_number": "FOMI-20260409-ABC123",
+  "message": "Bukti transfer berhasil dikirim. Admin akan memverifikasi pembayaran Anda."
 }
 ```
 
@@ -923,12 +1006,12 @@ Request body:
 
 ```json
 {
-    "barcode_code": "FOMI-MERCH-001",
-    "activation_data": {
-        "nickname": "Koper Abu",
-        "notes": "Dipasang di handle koper",
-        "color": "abu-abu"
-    }
+  "barcode_code": "FOMI-MERCH-001",
+  "activation_data": {
+    "nickname": "Koper Abu",
+    "notes": "Dipasang di handle koper",
+    "color": "abu-abu"
+  }
 }
 ```
 
@@ -946,25 +1029,25 @@ Barcode berhasil diaktifkan `200`:
 
 ```json
 {
-    "message": "Merchandise berhasil diverifikasi dan diaktifkan untuk 30 hari.",
-    "barcode": {
-        "id": 1,
-        "barcode_code": "FOMI-MERCH-001",
-        "status": "activated",
-        "subscription_days": 30,
-        "asset": {
-            "id": 5,
-            "name": "Koper Abu",
-            "qr_codes": [
-                {
-                    "id": 8,
-                    "code": "uuid-code",
-                    "is_active": true
-                }
-            ]
+  "message": "Merchandise berhasil diverifikasi dan diaktifkan untuk 30 hari.",
+  "barcode": {
+    "id": 1,
+    "barcode_code": "FOMI-MERCH-001",
+    "status": "activated",
+    "subscription_days": 30,
+    "asset": {
+      "id": 5,
+      "name": "Koper Abu",
+      "qr_codes": [
+        {
+          "id": 8,
+          "code": "uuid-code",
+          "is_active": true
         }
-    },
-    "activated": true
+      ]
+    }
+  },
+  "activated": true
 }
 ```
 
@@ -972,12 +1055,12 @@ Barcode sudah aktif di akun yang sama `200`:
 
 ```json
 {
-    "message": "Barcode ini sudah aktif di akun Anda.",
-    "barcode": {
-        "id": 1,
-        "status": "activated"
-    },
-    "activated": true
+  "message": "Barcode ini sudah aktif di akun Anda.",
+  "barcode": {
+    "id": 1,
+    "status": "activated"
+  },
+  "activated": true
 }
 ```
 
@@ -985,11 +1068,11 @@ Barcode sudah dipakai user lain `409`:
 
 ```json
 {
-    "message": "Barcode sudah diaktifkan.",
-    "barcode": {
-        "id": 1,
-        "status": "activated"
-    }
+  "message": "Barcode sudah diaktifkan.",
+  "barcode": {
+    "id": 1,
+    "status": "activated"
+  }
 }
 ```
 
@@ -1001,12 +1084,12 @@ Request body:
 
 ```json
 {
-    "barcode_code": "FOMI-MERCH-001",
-    "activation_data": {
-        "nickname": "Koper Abu",
-        "notes": "Dipasang di handle koper",
-        "color": "abu-abu"
-    }
+  "barcode_code": "FOMI-MERCH-001",
+  "activation_data": {
+    "nickname": "Koper Abu",
+    "notes": "Dipasang di handle koper",
+    "color": "abu-abu"
+  }
 }
 ```
 
@@ -1057,19 +1140,19 @@ Contoh respons `200`:
 
 ```json
 {
-    "data": [
-        {
-            "id": 7,
-            "name": "Paket Renewal 30 Hari",
-            "type": "digital",
-            "price": 25000,
-            "included_subscription_plan": {
-                "id": 2,
-                "duration_days": 30,
-                "qr_quota": 1
-            }
-        }
-    ]
+  "data": [
+    {
+      "id": 7,
+      "name": "Paket Renewal 30 Hari",
+      "type": "digital",
+      "price": 25000,
+      "included_subscription_plan": {
+        "id": 2,
+        "duration_days": 30,
+        "qr_quota": 1
+      }
+    }
+  ]
 }
 ```
 
@@ -1103,13 +1186,13 @@ Request body:
 
 ```json
 {
-    "name": "Tas Kerja",
-    "description": "Tas laptop hitam",
-    "contact_name": "Budi",
-    "contact_phone": "08123456789",
-    "contact_email": "budi@example.com",
-    "contact_address": "Jakarta",
-    "contact_note": "Hubungi via WhatsApp"
+  "name": "Tas Kerja",
+  "description": "Tas laptop hitam",
+  "contact_name": "Budi",
+  "contact_phone": "08123456789",
+  "contact_email": "budi@example.com",
+  "contact_address": "Jakarta",
+  "contact_note": "Hubungi via WhatsApp"
 }
 ```
 
@@ -1127,19 +1210,19 @@ Contoh respons `200`:
 
 ```json
 {
-    "message": "Data QR berhasil diperbarui.",
-    "asset": {
-        "id": 5,
-        "name": "Tas Kerja",
-        "description": "Tas laptop hitam",
-        "contact_info": {
-            "name": "Budi",
-            "phone": "08123456789",
-            "email": "budi@example.com",
-            "address": "Jakarta",
-            "note": "Hubungi via WhatsApp"
-        }
+  "message": "Data QR berhasil diperbarui.",
+  "asset": {
+    "id": 5,
+    "name": "Tas Kerja",
+    "description": "Tas laptop hitam",
+    "contact_info": {
+      "name": "Budi",
+      "phone": "08123456789",
+      "email": "budi@example.com",
+      "address": "Jakarta",
+      "note": "Hubungi via WhatsApp"
     }
+  }
 }
 ```
 
@@ -1151,11 +1234,11 @@ Contoh respons saat menjadi hilang:
 
 ```json
 {
-    "message": "Status barang diubah menjadi HILANG.",
-    "asset": {
-        "id": 5,
-        "status": "lost"
-    }
+  "message": "Status barang diubah menjadi HILANG.",
+  "asset": {
+    "id": 5,
+    "status": "lost"
+  }
 }
 ```
 
@@ -1195,13 +1278,13 @@ Contoh respons `200`:
 
 ```json
 {
-    "id": 1,
-    "name": "Budi",
-    "email": "budi@example.com",
-    "phone": "08123456789",
-    "address": "Jakarta",
-    "privacy_settings": ["name", "phone"],
-    "role": "user"
+  "id": 1,
+  "name": "Budi",
+  "email": "budi@example.com",
+  "phone": "08123456789",
+  "address": "Jakarta",
+  "privacy_settings": ["name", "phone"],
+  "role": "user"
 }
 ```
 
@@ -1213,10 +1296,10 @@ Request body:
 
 ```json
 {
-    "name": "Budi Santoso",
-    "email": "budi@example.com",
-    "phone": "08123456789",
-    "address": "Jakarta"
+  "name": "Budi Santoso",
+  "email": "budi@example.com",
+  "phone": "08123456789",
+  "address": "Jakarta"
 }
 ```
 
@@ -1235,9 +1318,9 @@ Request body:
 
 ```json
 {
-    "current_password": "password123",
-    "password": "passwordBaru123",
-    "password_confirmation": "passwordBaru123"
+  "current_password": "password123",
+  "password": "passwordBaru123",
+  "password_confirmation": "passwordBaru123"
 }
 ```
 
@@ -1250,7 +1333,7 @@ Contoh respons `200`:
 
 ```json
 {
-    "message": "Password berhasil diubah."
+  "message": "Password berhasil diubah."
 }
 ```
 
@@ -1258,7 +1341,7 @@ Jika password saat ini salah, respons `422`:
 
 ```json
 {
-    "message": "Password saat ini tidak sesuai."
+  "message": "Password saat ini tidak sesuai."
 }
 ```
 
@@ -1270,7 +1353,7 @@ Request body:
 
 ```json
 {
-    "privacy": ["name", "phone", "email"]
+  "privacy": ["name", "phone", "email"]
 }
 ```
 
@@ -1285,8 +1368,8 @@ Contoh respons `200`:
 
 ```json
 {
-    "message": "Pengaturan privasi disimpan.",
-    "privacy_settings": ["name", "phone", "email"]
+  "message": "Pengaturan privasi disimpan.",
+  "privacy_settings": ["name", "phone", "email"]
 }
 ```
 
@@ -1328,6 +1411,9 @@ Contoh respons `200`:
 - `GET /merchandise/my-items`
 - `GET /user/dashboard`
 - `GET /user/shop/checkout/context`
+- `GET /user/shop/checkout/provinces`
+- `GET /user/shop/checkout/cities`
+- `GET /user/shop/checkout/districts`
 - `POST /user/shop/checkout`
 - `GET /user/shop/checkout/addresses`
 - `POST /user/shop/checkout/addresses`

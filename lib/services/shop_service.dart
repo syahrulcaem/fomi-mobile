@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import '../core/api_client.dart';
 import '../models/checkout_address_model.dart';
 import '../models/checkout_context_model.dart';
+import '../models/checkout_region_model.dart';
 import '../models/checkout_result_model.dart';
 import '../models/checkout_unified_request_model.dart';
 import '../models/digital_product_model.dart';
@@ -116,6 +117,64 @@ class ShopService {
 
   Future<void> deleteCheckoutAddress(String addressId) async {
     await _apiClient.dio.delete('/user/shop/checkout/addresses/$addressId');
+  }
+
+  Future<List<CheckoutProvinceModel>> getCheckoutProvinces() async {
+    final response = await _apiClient.dio.get('/user/shop/checkout/provinces');
+    final list = _extractListPayload(response.data);
+
+    return list
+        .whereType<Map<String, dynamic>>()
+        .map(CheckoutProvinceModel.fromJson)
+        .where((item) => item.id > 0 && item.name.isNotEmpty)
+        .toList();
+  }
+
+  Future<List<CheckoutCityModel>> getCheckoutCities({
+    required int provinceId,
+  }) async {
+    final response = await _apiClient.dio.get(
+      '/user/shop/checkout/cities',
+      queryParameters: {'province_id': provinceId},
+    );
+    final list = _extractListPayload(response.data);
+
+    return list
+        .whereType<Map<String, dynamic>>()
+        .map(CheckoutCityModel.fromJson)
+        .where((item) => item.id > 0 && item.name.isNotEmpty)
+        .toList();
+  }
+
+  Future<List<CheckoutDistrictModel>> getCheckoutDistricts({
+    required int regencyId,
+  }) async {
+    final response = await _apiClient.dio.get(
+      '/user/shop/checkout/districts',
+      queryParameters: {'regency_id': regencyId},
+    );
+    final list = _extractListPayload(response.data);
+
+    return list
+        .whereType<Map<String, dynamic>>()
+        .map(CheckoutDistrictModel.fromJson)
+        .where((item) => item.id > 0 && item.name.isNotEmpty)
+        .toList();
+  }
+
+  List<dynamic> _extractListPayload(dynamic raw) {
+    if (raw is List) {
+      return raw;
+    }
+
+    if (raw is Map<String, dynamic>) {
+      final data = raw['data'];
+      if (data is List) {
+        return data;
+      }
+    }
+
+    return const [];
   }
 
   /// Calculate shipping cost via backend (RajaOngkir proxy).

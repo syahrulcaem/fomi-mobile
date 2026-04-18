@@ -17,6 +17,9 @@ Dokumen ini menjelaskan perubahan API checkout mobile agar sinkron dengan checko
 Semua endpoint di bawah membutuhkan Bearer token.
 
 - `GET /api/user/shop/checkout/context`
+- `GET /api/user/shop/checkout/provinces`
+- `GET /api/user/shop/checkout/cities?province_id={province_id}`
+- `GET /api/user/shop/checkout/districts?regency_id={regency_id}`
 - `POST /api/user/shop/checkout`
 - `GET /api/user/shop/checkout/addresses`
 - `POST /api/user/shop/checkout/addresses`
@@ -27,6 +30,90 @@ Semua endpoint di bawah membutuhkan Bearer token.
 - `POST /api/orders/checkout` (alias ke flow checkout baru)
 - `GET /api/orders/checkout/context` (alias ke context checkout baru)
 - `POST /api/user/renewal/checkout` (legacy renewal khusus aplikasi lama)
+
+## Endpoint Wilayah untuk Checkout Mobile
+
+Semua endpoint di bagian ini membutuhkan Bearer token.
+
+### 1) GET `/api/user/shop/checkout/provinces`
+
+Mengambil daftar provinsi untuk dropdown checkout.
+
+Contoh respons `200`:
+
+```json
+{
+  "success": true,
+  "message": "Daftar provinsi berhasil diambil.",
+  "data": [
+    {
+      "id": 32,
+      "name": "Jawa Barat",
+      "rajaongkir_id": 9
+    }
+  ]
+}
+```
+
+### 2) GET `/api/user/shop/checkout/cities?province_id={province_id}`
+
+Mengambil daftar kota/kabupaten berdasarkan provinsi terpilih.
+
+Query:
+
+- `province_id` (required, integer, id provinsi lokal)
+
+Contoh respons `200`:
+
+```json
+{
+  "success": true,
+  "message": "Daftar kabupaten/kota berhasil diambil.",
+  "data": [
+    {
+      "id": 3273,
+      "province_id": 32,
+      "type": "Kota",
+      "name": "Bandung",
+      "rajaongkir_id": 23
+    }
+  ]
+}
+```
+
+### 3) GET `/api/user/shop/checkout/districts?regency_id={regency_id}`
+
+Mengambil daftar kecamatan berdasarkan kabupaten/kota terpilih.
+
+Query:
+
+- `regency_id` (required, integer, id kabupaten/kota lokal)
+
+Contoh respons `200`:
+
+```json
+{
+  "success": true,
+  "message": "Daftar kecamatan berhasil diambil.",
+  "data": [
+    {
+      "id": 152,
+      "name": "Coblong",
+      "type": "district"
+    }
+  ]
+}
+```
+
+Contoh respons `422` jika `regency_id` tidak valid:
+
+```json
+{
+  "success": false,
+  "message": "Regency tidak valid untuk mengambil daftar kecamatan.",
+  "data": []
+}
+```
 
 ## Kontrak Request Checkout Baru
 
@@ -73,10 +160,11 @@ Jika `payment_method=bank_transfer`, wajib kirim:
 Untuk migrasi dari flow lama, mobile app perlu:
 
 1. Mengambil context dari `GET /api/user/shop/checkout/context` saat halaman checkout dibuka.
-2. Menambahkan step pemilihan QR aktif untuk checkout yang mengandung produk fisik.
-3. Mengirim field pengiriman lengkap saat ada produk fisik.
-4. Mengirim multipart form saat memilih `bank_transfer`.
-5. Tetap memanggil `POST /api/midtrans/check-status` setelah transaksi Midtrans sukses.
+2. Mengambil daftar wilayah secara berjenjang lewat endpoint `provinces -> cities -> districts` saat user mengisi alamat checkout.
+3. Menambahkan step pemilihan QR aktif untuk checkout yang mengandung produk fisik.
+4. Mengirim field pengiriman lengkap saat ada produk fisik.
+5. Mengirim multipart form saat memilih `bank_transfer`.
+6. Tetap memanggil `POST /api/midtrans/check-status` setelah transaksi Midtrans sukses.
 
 ## Referensi Dokumen Utama
 
