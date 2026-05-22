@@ -1,21 +1,22 @@
-﻿import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-import '../../core/app_theme.dart';
+import '../../core/shop_theme.dart';
 import '../../providers/cart_provider.dart';
 import '../../widgets/empty_state.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
 
-  String _formatPrice(int price) {
-    final str = price.toString();
+  String _fmt(int p) {
+    final s = p.toString();
     final buf = StringBuffer();
-    for (int i = 0; i < str.length; i++) {
-      if (i > 0 && (str.length - i) % 3 == 0) buf.write('.');
-      buf.write(str[i]);
+    for (var i = 0; i < s.length; i++) {
+      if (i > 0 && (s.length - i) % 3 == 0) buf.write('.');
+      buf.write(s[i]);
     }
     return 'Rp ${buf.toString()}';
   }
@@ -23,34 +24,55 @@ class CartScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cart = context.watch<CartProvider>();
-
     return Scaffold(
-      backgroundColor: AppColors.bgBlue,
+      backgroundColor: SC.bg,
       body: SafeArea(
         child: Column(
           children: [
             // Header
             Container(
-              decoration: const BoxDecoration(gradient: AppGradients.heroGradient),
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+              color: SC.white,
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 16),
               child: Row(
                 children: [
                   GestureDetector(
                     onTap: () => context.pop(),
                     child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(color: Colors.white.withOpacity(0.8), borderRadius: BorderRadius.circular(12)),
-                      child: const Icon(Icons.arrow_back_ios_new, size: 18, color: AppColors.textPrimary),
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: SC.redLight,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(Icons.arrow_back_ios_new,
+                          size: 16, color: SC.red),
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  const Text('Keranjang', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+                  const SizedBox(width: 14),
+                  Text(
+                    'Keranjang',
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: SC.textPrimary,
+                    ),
+                  ),
                   const Spacer(),
                   if (cart.count > 0)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                      decoration: BoxDecoration(color: AppColors.primaryBlue, borderRadius: BorderRadius.circular(20)),
-                      child: Text('${cart.count} item', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: SC.red,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        '${cart.count} item',
+                        style: GoogleFonts.poppins(
+                            color: SC.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600),
+                      ),
                     ),
                 ],
               ),
@@ -61,7 +83,7 @@ class CartScreen extends StatelessWidget {
                   ? EmptyState(
                       icon: Icons.shopping_cart_outlined,
                       title: 'Keranjang kosong',
-                      subtitle: 'Yuk belanja dulu di toko FOMI!',
+                      subtitle: 'Yuk belanja dulu di FOMI Store!',
                       action: () => context.go('/shop'),
                       actionLabel: 'Ke Toko',
                     )
@@ -69,8 +91,8 @@ class CartScreen extends StatelessWidget {
                       padding: const EdgeInsets.all(16),
                       itemCount: cart.items.length,
                       separatorBuilder: (_, __) => const SizedBox(height: 12),
-                      itemBuilder: (context, index) {
-                        final item = cart.items[index];
+                      itemBuilder: (context, i) {
+                        final item = cart.items[i];
                         return Dismissible(
                           key: Key(item.cartKey),
                           direction: DismissDirection.endToStart,
@@ -79,85 +101,122 @@ class CartScreen extends StatelessWidget {
                             alignment: Alignment.centerRight,
                             padding: const EdgeInsets.only(right: 20),
                             decoration: BoxDecoration(
-                              color: Colors.red.shade100,
-                              borderRadius: BorderRadius.circular(20),
+                              color: SC.redLight,
+                              borderRadius: BorderRadius.circular(18),
                             ),
-                            child: Icon(Icons.delete_outline, color: Colors.red.shade700, size: 28),
+                            child: const Icon(Icons.delete_outline,
+                                color: SC.red, size: 26),
                           ),
                           child: Container(
                             padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: [BoxShadow(color: AppColors.lightBlue.withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 3))],
+                              color: SC.white,
+                              borderRadius: BorderRadius.circular(18),
+                              boxShadow: SC.cardShadow,
                             ),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Image
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(12),
                                   child: item.imageUrl != null
                                       ? CachedNetworkImage(
                                           imageUrl: item.imageUrl!,
-                                          width: 72, height: 72, fit: BoxFit.cover,
-                                          errorWidget: (_, __, ___) => _imgPlaceholder(),
+                                          width: 72,
+                                          height: 72,
+                                          fit: BoxFit.cover,
+                                          errorWidget: (_, __, ___) =>
+                                              _imgPlaceholder(),
                                         )
                                       : _imgPlaceholder(),
                                 ),
                                 const SizedBox(width: 12),
-                                // Info
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Text(item.baseName,
-                                          maxLines: 2, overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                                      Text(
+                                        item.baseName,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w700,
+                                          color: SC.textPrimary,
+                                        ),
+                                      ),
                                       if (item.variantLabel != null) ...[
                                         const SizedBox(height: 3),
                                         Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                          decoration: BoxDecoration(color: AppColors.softBlue, borderRadius: BorderRadius.circular(8)),
-                                          child: Text(item.variantLabel!, style: const TextStyle(fontSize: 10, color: AppColors.primaryBlue, fontWeight: FontWeight.w600)),
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8, vertical: 2),
+                                          decoration: BoxDecoration(
+                                              color: SC.redLight,
+                                              borderRadius:
+                                                  BorderRadius.circular(8)),
+                                          child: Text(item.variantLabel!,
+                                              style: GoogleFonts.poppins(
+                                                  fontSize: 10,
+                                                  color: SC.red,
+                                                  fontWeight:
+                                                      FontWeight.w600)),
                                         ),
                                       ],
                                       const SizedBox(height: 6),
-                                      Text(_formatPrice(item.price),
-                                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.primaryBlue)),
+                                      Text(
+                                        _fmt(item.price),
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w800,
+                                          color: SC.red,
+                                        ),
+                                      ),
                                       const SizedBox(height: 8),
-                                      // Qty control
                                       Row(
                                         children: [
-                                          _qtyButton(
+                                          _qtyBtn(
                                             icon: Icons.remove,
-                                            onTap: () => cart.updateQuantity(item.cartKey, item.quantity - 1),
+                                            onTap: () => cart.updateQuantity(
+                                                item.cartKey,
+                                                item.quantity - 1),
                                           ),
                                           Container(
                                             width: 36,
                                             alignment: Alignment.center,
                                             child: Text('${item.quantity}',
-                                                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                                                style: GoogleFonts.poppins(
+                                                    fontSize: 15,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: SC.textPrimary)),
                                           ),
-                                          _qtyButton(
+                                          _qtyBtn(
                                             icon: Icons.add,
-                                            onTap: () => cart.updateQuantity(item.cartKey, item.quantity + 1),
+                                            onTap: () => cart.updateQuantity(
+                                                item.cartKey,
+                                                item.quantity + 1),
                                             isAdd: true,
                                           ),
                                           const Spacer(),
-                                          Text(_formatPrice(item.subtotal),
-                                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.midBlue)),
+                                          Text(
+                                            _fmt(item.subtotal),
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w700,
+                                              color: SC.red,
+                                            ),
+                                          ),
                                         ],
                                       ),
                                     ],
                                   ),
                                 ),
-                                // Delete btn
                                 GestureDetector(
                                   onTap: () => cart.removeItem(item.cartKey),
                                   child: const Padding(
                                     padding: EdgeInsets.only(left: 4),
-                                    child: Icon(Icons.close, size: 18, color: AppColors.textSecondary),
+                                    child: Icon(Icons.close,
+                                        size: 18, color: SC.textSecondary),
                                   ),
                                 ),
                               ],
@@ -167,44 +226,56 @@ class CartScreen extends StatelessWidget {
                       },
                     ),
             ),
-            // Bottom total + checkout
+            // Bottom total
             if (cart.isNotEmpty)
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                  boxShadow: [BoxShadow(color: AppColors.primaryBlue.withOpacity(0.1), blurRadius: 16, offset: const Offset(0, -4))],
+                  color: SC.white,
+                  borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(24)),
+                  boxShadow: [
+                    BoxShadow(
+                        color: SC.red.withOpacity(0.08),
+                        blurRadius: 16,
+                        offset: const Offset(0, -4))
+                  ],
                 ),
-                padding: EdgeInsets.fromLTRB(20, 16, 20, MediaQuery.of(context).padding.bottom + 12),
+                padding: EdgeInsets.fromLTRB(
+                    20, 16, 20, MediaQuery.of(context).padding.bottom + 12),
                 child: Column(
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Subtotal', style: TextStyle(fontSize: 14, color: AppColors.textSecondary)),
-                        Text(_formatPrice(cart.total), style: const TextStyle(fontSize: 14, color: AppColors.textSecondary)),
+                        Text('Subtotal',
+                            style: GoogleFonts.poppins(
+                                fontSize: 13, color: SC.textSecondary)),
+                        Text(_fmt(cart.total),
+                            style: GoogleFonts.poppins(
+                                fontSize: 13, color: SC.textSecondary)),
                       ],
                     ),
-                    const Divider(height: 16),
+                    Divider(height: 16, color: Colors.grey.shade200),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Total', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-                        Text(_formatPrice(cart.total), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.primaryBlue)),
+                        Text('Total',
+                            style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: SC.textPrimary)),
+                        Text(_fmt(cart.total),
+                            style: GoogleFonts.poppins(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w900,
+                                color: SC.red)),
                       ],
                     ),
                     const SizedBox(height: 14),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () => context.push('/checkout'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryBlue,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                        ),
-                        child: const Text('Checkout', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
-                      ),
+                    ShopWidgets.primaryButton(
+                      label: 'Checkout',
+                      onTap: () => context.push('/checkout'),
+                      icon: Icons.shopping_bag_outlined,
                     ),
                   ],
                 ),
@@ -216,25 +287,29 @@ class CartScreen extends StatelessWidget {
   }
 
   Widget _imgPlaceholder() => Container(
-        width: 72, height: 72, color: AppColors.softBlue,
-        child: const Icon(Icons.image_outlined, size: 28, color: AppColors.primaryBlue),
+        width: 72,
+        height: 72,
+        color: SC.redLight,
+        child: const Icon(Icons.image_outlined, size: 28, color: SC.red),
       );
 
-  Widget _qtyButton({required IconData icon, required VoidCallback onTap, bool isAdd = false}) {
+  Widget _qtyBtn(
+      {required IconData icon,
+      required VoidCallback onTap,
+      bool isAdd = false}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 28, height: 28,
+        width: 28,
+        height: 28,
         decoration: BoxDecoration(
-          color: isAdd ? AppColors.primaryBlue : Colors.white,
+          color: isAdd ? SC.red : SC.white,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: isAdd ? AppColors.primaryBlue : AppColors.skyBlue, width: 1.5),
+          border: Border.all(
+              color: isAdd ? SC.red : SC.redSoft, width: 1.5),
         ),
-        child: Icon(icon, size: 16, color: isAdd ? Colors.white : AppColors.primaryBlue),
+        child: Icon(icon, size: 16, color: isAdd ? SC.white : SC.red),
       ),
     );
   }
 }
-
-
-

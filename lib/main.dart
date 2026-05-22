@@ -11,6 +11,7 @@ import 'providers/auth_provider.dart';
 import 'providers/cart_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
+import 'screens/scan/all_chat_sessions_screen.dart';
 import 'screens/dashboard/dashboard_screen.dart';
 import 'screens/merchandise/merchandise_screen.dart';
 import 'screens/orders/order_detail_screen.dart';
@@ -154,29 +155,16 @@ class _AppRouter extends StatelessWidget {
                 ),
               ],
             ),
-            // Branch 2: Scan & QR Codes
+            // Branch 2: Chat
             StatefulShellBranch(
               routes: [
                 GoRoute(
-                  path: '/scan',
-                  builder: (_, __) => const ScanScreen(),
-                ),
-                GoRoute(
-                  path: '/qrcodes',
-                  builder: (_, __) => const QrCodeListScreen(),
+                  path: '/chat',
+                  builder: (_, __) => const AllChatSessionsScreen(),
                 ),
               ],
             ),
-            // Branch 3: Orders
-            StatefulShellBranch(
-              routes: [
-                GoRoute(
-                  path: '/orders',
-                  builder: (_, __) => const OrderListScreen(),
-                ),
-              ],
-            ),
-            // Branch 4: Profile
+            // Branch 3: Profile
             StatefulShellBranch(
               routes: [
                 GoRoute(
@@ -189,6 +177,14 @@ class _AppRouter extends StatelessWidget {
         ),
 
         // --- Other Top-Level Routes (No Bottom Nav) ---
+        GoRoute(
+          path: '/scan',
+          builder: (_, __) => const ScanScreen(),
+        ),
+        GoRoute(
+          path: '/qrcodes',
+          builder: (_, __) => const QrCodeListScreen(),
+        ),
         // Shop Details
         GoRoute(
           path: '/shop/products',
@@ -235,6 +231,9 @@ class _AppRouter extends StatelessWidget {
           builder: (_, state) =>
               EditQrCodeScreen(assetId: state.pathParameters['id'] ?? ''),
         ),
+
+        // Orders
+        GoRoute(path: '/orders', builder: (_, __) => const OrderListScreen()),
 
         // Order Details
         GoRoute(
