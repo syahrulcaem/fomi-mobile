@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -30,6 +31,7 @@ class _ShopPaymentScreenState extends State<ShopPaymentScreen> {
   bool _initializingWindowsWebView = false;
   String? _runtimeOrderId;
   bool _navigatingSuccess = false;
+  Timer? _pollingTimer;
 
   bool get _supportsMobileWebView {
     if (kIsWeb) return false;
@@ -46,6 +48,7 @@ class _ShopPaymentScreenState extends State<ShopPaymentScreen> {
   @override
   void initState() {
     super.initState();
+    _startPolling();
     _runtimeOrderId = _extractOrderIdFromUrl(widget.snapUrl) ??
         (widget.orderId.trim().isNotEmpty ? widget.orderId.trim() : null);
 
@@ -111,8 +114,17 @@ class _ShopPaymentScreenState extends State<ShopPaymentScreen> {
     }
   }
 
+  void _startPolling() {
+    _pollingTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
+      if (mounted && !_checking && !_navigatingSuccess) {
+        _checkStatus(isPolling: true);
+      }
+    });
+  }
+
   @override
   void dispose() {
+    _pollingTimer?.cancel();
     _windowsController?.dispose();
     super.dispose();
   }
@@ -197,33 +209,58 @@ class _ShopPaymentScreenState extends State<ShopPaymentScreen> {
     _navigatingSuccess = true;
     await context.read<CartProvider>().clearCart();
     if (!mounted) return;
-    context.go('/shop/success?orderNumber=${Uri.encodeComponent(orderNumber ?? '')}');
+    
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('Pembayaran Berhasil', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+        content: Text('Terima kasih, pembayaran Anda telah berhasil dikonfirmasi.', style: GoogleFonts.poppins()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('OK', style: GoogleFonts.poppins()),
+          ),
+        ],
+      ),
+    );
+    
+    if (!mounted) return;
+    context.go('/orders');
   }
 
-  Future<void> _checkStatus() async {
+  Future<void> _checkStatus({bool isPolling = false}) async {
     final orderId = _runtimeOrderId ??
         (widget.orderId.trim().isNotEmpty ? widget.orderId.trim() : null);
     if (_checking) return;
     if (orderId == null || orderId.isEmpty) {
-      setState(() => _statusMessage =
-          'Order ID tidak ditemukan. Tekan Cek Status lagi setelah halaman selesai memuat.');
+      if (!isPolling) {
+        setState(() => _statusMessage =
+            'Order ID tidak ditemukan. Tekan Cek Status lagi setelah halaman selesai memuat.');
+      }
       return;
     }
     setState(() {
       _checking = true;
-      _statusMessage = 'Mengecek status pembayaran...';
+      if (!isPolling) _statusMessage = 'Mengecek status pembayaran...';
     });
     try {
       final result = await context.read<ShopService>().checkMidtransStatus(orderId);
       if (!mounted) return;
       final status = _resolveStatus(result);
-      setState(() => _statusMessage = 'Status: $status');
+      if (!isPolling || _isSuccessStatus(status.isEmpty ? 'unknown' : status)) {
+        setState(() => _statusMessage = 'Status: $status');
+      }
       if (_isSuccessStatus(status.isEmpty ? 'unknown' : status)) {
+        _pollingTimer?.cancel();
         await _goToSuccess(result['order_id']?.toString() ?? orderId);
       }
     } catch (_) {
       if (!mounted) return;
-      setState(() => _statusMessage = 'Gagal cek status pembayaran.');
+      if (!isPolling) {
+        setState(() => _statusMessage = 'Gagal cek status pembayaran.');
+      }
     } finally {
       if (mounted) setState(() => _checking = false);
     }

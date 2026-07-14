@@ -1,8 +1,10 @@
-﻿import 'package:flutter/foundation.dart';
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_windows/webview_windows.dart' as windows_webview;
+import 'package:go_router/go_router.dart';
 
 import '../../core/external_url_launcher.dart';
 import '../../services/renewal_service.dart';
@@ -28,6 +30,7 @@ class _MidtransPaymentScreenState extends State<MidtransPaymentScreen> {
   bool _checking = false;
   bool _initializingWindowsWebView = false;
   bool _showDeepLinkFallback = false;
+  Timer? _pollingTimer;
 
   bool get _supportsMobileWebView {
     if (kIsWeb) {
@@ -48,6 +51,7 @@ class _MidtransPaymentScreenState extends State<MidtransPaymentScreen> {
   @override
   void initState() {
     super.initState();
+    _startPolling();
     if (_supportsMobileWebView) {
       _controller = WebViewController()
         ..setJavaScriptMode(JavaScriptMode.unrestricted)
@@ -168,20 +172,64 @@ class _MidtransPaymentScreenState extends State<MidtransPaymentScreen> {
     return NavigationDecision.prevent;
   }
 
+  void _startPolling() {
+    _pollingTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
+      if (mounted && !_checking && !_navigatingSuccess) {
+        _checkStatus(isPolling: true);
+      }
+    });
+  }
+
   @override
   void dispose() {
+    _pollingTimer?.cancel();
     _windowsController?.dispose();
     super.dispose();
   }
 
-  Future<void> _checkStatus() async {
+  bool _navigatingSuccess = false;
+
+  bool _isSuccessStatus(String status) {
+    final n = status.trim().toLowerCase();
+    return n == 'paid' || n == 'settlement' || n == 'capture' ||
+        n == 'authorize' || n == 'success' || n == 'completed' || n == 'processing';
+  }
+
+  Future<void> _showSuccessPopupAndNavigate() async {
+    if (_navigatingSuccess) return;
+    _navigatingSuccess = true;
+    if (!mounted) return;
+    
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Pembayaran Berhasil', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: const Text('Terima kasih, pembayaran Anda telah berhasil dikonfirmasi.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+    
+    if (!mounted) return;
+    context.go('/orders');
+  }
+
+  Future<void> _checkStatus({bool isPolling = false}) async {
     if (_checking || widget.orderId.isEmpty) {
       return;
     }
 
     setState(() {
       _checking = true;
-      _statusMessage = 'Checking payment status...';
+      if (!isPolling) {
+        _statusMessage = 'Checking payment status...';
+      }
     });
 
     try {
@@ -190,16 +238,26 @@ class _MidtransPaymentScreenState extends State<MidtransPaymentScreen> {
       if (!mounted) {
         return;
       }
-      setState(() {
-        _statusMessage = 'Status: ${result.transactionStatus ?? 'unknown'}';
-      });
+      final status = result.transactionStatus ?? 'unknown';
+      if (!isPolling || _isSuccessStatus(status)) {
+        setState(() {
+          _statusMessage = 'Status: $status';
+        });
+      }
+      
+      if (_isSuccessStatus(status)) {
+        _pollingTimer?.cancel();
+        await _showSuccessPopupAndNavigate();
+      }
     } catch (_) {
       if (!mounted) {
         return;
       }
-      setState(() {
-        _statusMessage = 'Gagal cek status pembayaran.';
-      });
+      if (!isPolling) {
+        setState(() {
+          _statusMessage = 'Gagal cek status pembayaran.';
+        });
+      }
     } finally {
       if (mounted) {
         setState(() => _checking = false);
