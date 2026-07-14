@@ -143,7 +143,8 @@ class _ProfileScreenState extends State<ProfileScreen>
   void _snack(String msg, {bool success = false}) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(msg,
-          style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+          style:
+              GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
       backgroundColor: success ? const Color(0xFF2E7D32) : _kRed,
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -248,9 +249,10 @@ class _ProfileScreenState extends State<ProfileScreen>
           ),
           // Quick links
           Row(children: [
-            _headerAction(Icons.shopping_bag_outlined, () => context.push('/orders')),
+            _headerAction(
+                Icons.shopping_bag_outlined, () => context.push('/orders')),
             const SizedBox(width: 8),
-            _headerAction(Icons.qr_code_2_rounded, () => context.go('/dashboard')),
+            _headerAction(Icons.qr_code_2_rounded, () => context.go('/scan')),
           ]),
         ],
       ),
@@ -300,21 +302,23 @@ class _ProfileScreenState extends State<ProfileScreen>
           dividerColor: Colors.transparent,
           labelColor: _kRed,
           unselectedLabelColor: _kTextSecondary,
-          labelStyle: GoogleFonts.poppins(
-              fontSize: 11, fontWeight: FontWeight.w700),
-          unselectedLabelStyle: GoogleFonts.poppins(
-              fontSize: 11, fontWeight: FontWeight.w500),
-          tabs: List.generate(_tabs.length, (i) => Tab(
-            height: 36,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(_tabIcons[i], size: 14),
-                const SizedBox(width: 4),
-                Text(_tabs[i]),
-              ],
-            ),
-          )),
+          labelStyle:
+              GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w700),
+          unselectedLabelStyle:
+              GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w500),
+          tabs: List.generate(
+              _tabs.length,
+              (i) => Tab(
+                    height: 36,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(_tabIcons[i], size: 14),
+                        const SizedBox(width: 4),
+                        Text(_tabs[i]),
+                      ],
+                    ),
+                  )),
         ),
       ),
     );
@@ -375,9 +379,9 @@ class _ProfileScreenState extends State<ProfileScreen>
           // Logout button
           GestureDetector(
             onTap: () async {
-          final router = GoRouter.of(context);
-          await context.read<AuthProvider>().logout();
-          router.go('/login');
+              final router = GoRouter.of(context);
+              await context.read<AuthProvider>().logout();
+              router.go('/login');
             },
             child: Container(
               width: double.infinity,
@@ -412,18 +416,29 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   Widget _buildQuickLinks() {
     final links = [
-      _QuickLink(Icons.shopping_bag_rounded, 'Pesanan', 'Riwayat order',
-          const Color(0xFFE3F2FD), const Color(0xFF1565C0),
+      _QuickLink(
+          Icons.shopping_bag_rounded,
+          'Pesanan',
+          'Riwayat order',
+          const Color(0xFFE3F2FD),
+          const Color(0xFF1565C0),
           () => context.push('/orders')),
-      _QuickLink(Icons.cloud_download_rounded, 'Digital', 'File download',
-          const Color(0xFFE8F5E9), const Color(0xFF2E7D32),
+      _QuickLink(
+          Icons.cloud_download_rounded,
+          'Digital',
+          'File download',
+          const Color(0xFFE8F5E9),
+          const Color(0xFF2E7D32),
           () => context.push('/shop/digital')),
       _QuickLink(Icons.credit_card_rounded, 'Langganan', 'Perpanjang QR',
-          _kRedLight, _kRed,
-          () => context.push('/shop/subscription')),
-      _QuickLink(Icons.qr_code_2_rounded, 'QR Saya', 'Kelola aset',
-          const Color(0xFFFFF8E1), const Color(0xFFF57F17),
-          () => context.go('/dashboard')),
+          _kRedLight, _kRed, () => context.push('/shop/subscription')),
+      _QuickLink(
+          Icons.qr_code_2_rounded,
+          'QR Saya',
+          'Kelola aset',
+          const Color(0xFFFFF8E1),
+          const Color(0xFFF57F17),
+          () => context.go('/qrcodes')),
     ];
 
     return GridView.count(
@@ -438,8 +453,8 @@ class _ProfileScreenState extends State<ProfileScreen>
           .map((l) => GestureDetector(
                 onTap: l.onTap,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(14),
@@ -545,8 +560,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         onTap: () => onChange(!value),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          padding:
-              const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
             color: value ? _kRedLight : Colors.white,
             borderRadius: BorderRadius.circular(12),
@@ -563,8 +577,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(icon,
-                    size: 17,
-                    color: value ? Colors.white : _kTextSecondary),
+                    size: 17, color: value ? Colors.white : _kTextSecondary),
               ),
               const SizedBox(width: 12),
               Expanded(

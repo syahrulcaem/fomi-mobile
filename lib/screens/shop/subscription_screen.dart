@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:dio/dio.dart';
 
 import '../../core/shop_theme.dart';
 import '../../services/renewal_service.dart';
@@ -215,6 +216,78 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     ]);
   }
 
+  Future<void> _checkout(String? planId) async {
+    if (planId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text(
+                'Paket ini tidak dapat dibeli karena merupakan dummy data.')),
+      );
+      return;
+    }
+
+    setState(() => _loading = true);
+    try {
+      final service = context.read<RenewalService>();
+      final result = await service.checkoutRenewal(
+        subscriptionPlanId: planId,
+        quantity: 1,
+        renewalAssetId: null, // Buy new package mode
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      final snapUrl = result.resolvedSnapUrl;
+      if (snapUrl == null || snapUrl.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              result.message ??
+                  ((result.snapToken != null && result.snapToken!.isNotEmpty)
+                      ? 'Token pembayaran diterima, tapi URL tidak bisa dibentuk.'
+                      : 'Snap URL/Token tidak tersedia dari API.'),
+            ),
+          ),
+        );
+        return;
+      }
+
+      context.push(
+        '/renewal/payment?snapUrl=${Uri.encodeComponent(snapUrl)}&orderId=${Uri.encodeComponent(result.orderId ?? '')}',
+      );
+    } on DioException catch (e) {
+      if (!mounted) {
+        return;
+      }
+
+      String msg = 'Checkout langganan gagal. Silakan coba lagi.';
+      if (e.response?.data is Map<String, dynamic>) {
+        final message = e.response?.data['message']?.toString();
+        if (message != null && message.isNotEmpty) {
+          msg = message;
+        }
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(msg)),
+      );
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Checkout langganan gagal. Silakan coba lagi.')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+    }
+  }
+
   Widget _staticCard(Map<String, dynamic> plan, bool featured) {
     final benefits = plan['benefits'] as List<String>;
     return _PlanCard(
@@ -223,7 +296,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       subtitle: '${plan['qr']} QR · ${plan['duration']}',
       benefits: benefits,
       featured: featured,
-      onTap: () => context.push('/renewal'),
+      onTap: () => _checkout(null),
     );
   }
 
@@ -238,7 +311,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         'Support prioritas Fomi',
       ],
       featured: featured,
-      onTap: () => context.push('/renewal'),
+      onTap: () => _checkout(pkg.id),
     );
   }
 }

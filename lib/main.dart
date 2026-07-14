@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -21,7 +21,6 @@ import 'screens/qr/edit_qrcode_screen.dart';
 import 'screens/qr/qrcode_detail_screen.dart';
 import 'screens/qr/qrcode_list_screen.dart';
 import 'screens/renewal/midtrans_payment_screen.dart';
-import 'screens/renewal/renewal_screen.dart';
 import 'screens/shop/shop_home_screen.dart';
 import 'screens/shop/product_list_screen.dart';
 import 'screens/shop/product_detail_screen.dart';
@@ -242,8 +241,7 @@ class _AppRouter extends StatelessWidget {
               OrderDetailScreen(orderId: state.pathParameters['id'] ?? ''),
         ),
 
-        // Renewal
-        GoRoute(path: '/renewal', builder: (_, __) => const RenewalScreen()),
+        // Renewal Payment (keep the payment route)
         GoRoute(
           path: '/renewal/payment',
           builder: (_, state) => MidtransPaymentScreen(
