@@ -252,7 +252,7 @@ class _ProfileScreenState extends State<ProfileScreen>
             _headerAction(
                 Icons.shopping_bag_outlined, () => context.push('/orders')),
             const SizedBox(width: 8),
-            _headerAction(Icons.qr_code_2_rounded, () => context.go('/scan')),
+            _headerAction(Icons.qr_code_2_rounded, () => context.push('/scan')),
           ]),
         ],
       ),
@@ -429,7 +429,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           'File download',
           const Color(0xFFE8F5E9),
           const Color(0xFF2E7D32),
-          () => context.push('/shop/digital')),
+          () => context.push('/digital-products')),
       _QuickLink(Icons.credit_card_rounded, 'Langganan', 'Perpanjang QR',
           _kRedLight, _kRed, () => context.push('/shop/subscription')),
       _QuickLink(

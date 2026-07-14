@@ -216,13 +216,56 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     ]);
   }
 
-  Future<void> _checkout(String? planId) async {
+  Future<void> _checkout(String? planId, String planName) async {
     if (planId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text(
                 'Paket ini tidak dapat dibeli karena merupakan dummy data.')),
       );
+      return;
+    }
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text(
+            'Konfirmasi Pembelian',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+          ),
+          content: Text(
+            'Apakah Anda yakin ingin membeli $planName?',
+            style: GoogleFonts.poppins(),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(
+                'Batal',
+                style: GoogleFonts.poppins(color: Colors.grey),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: SC.red,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: Text(
+                'Beli',
+                style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirm != true) {
       return;
     }
 
@@ -296,7 +339,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       subtitle: '${plan['qr']} QR · ${plan['duration']}',
       benefits: benefits,
       featured: featured,
-      onTap: () => _checkout(null),
+      onTap: () => _checkout(null, plan['name'] as String),
     );
   }
 
@@ -311,7 +354,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         'Support prioritas Fomi',
       ],
       featured: featured,
-      onTap: () => _checkout(pkg.id),
+      onTap: () => _checkout(pkg.id, pkg.name),
     );
   }
 }
