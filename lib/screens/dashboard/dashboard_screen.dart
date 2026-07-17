@@ -1,4 +1,4 @@
-﻿import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -232,9 +232,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _SummaryItem(
           'QR Aktif', '${stats.activeQrCodes}', Icons.qr_code_2, '/qrcodes'),
       _SummaryItem('Total Pesanan', '${stats.totalOrders}',
-          Icons.local_shipping_outlined, '/shop'),
-      _SummaryItem('Sisa Kuota', '${stats.remainingBarcodeQuota}',
-          Icons.confirmation_number_outlined, '/shop'),
+          Icons.local_shipping_outlined, '/orders'),
+      _SummaryItem('Barang Hilang', '${stats.lostAssets}',
+          Icons.location_off_outlined, '/qrcodes'),
     ];
 
     return Padding(

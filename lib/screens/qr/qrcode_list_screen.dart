@@ -69,6 +69,16 @@ class _QrCodeListScreenState extends State<QrCodeListScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/dashboard');
+            }
+          },
+        ),
         title: Text(
           'QR Code Milikku',
           style: GoogleFonts.montserrat(
@@ -87,7 +97,8 @@ class _QrCodeListScreenState extends State<QrCodeListScreen> {
               color: _accent,
               child: _loading
                   ? ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 10),
                       itemCount: 5,
                       itemBuilder: (_, __) => const Padding(
                         padding: EdgeInsets.only(bottom: 10),
@@ -100,17 +111,19 @@ class _QrCodeListScreenState extends State<QrCodeListScreen> {
                     )
                   : _result.items.isEmpty
                       ? ListView(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 20),
                           children: [
                             Container(
                               padding: const EdgeInsets.all(24),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFFFF5F5),
+                                color: const Color(0xFFFFEBEE),
                                 borderRadius: BorderRadius.circular(14),
                               ),
                               child: Column(
                                 children: [
-                                  const Icon(Icons.qr_code_scanner, size: 60, color: _accent),
+                                  const Icon(Icons.qr_code_scanner,
+                                      size: 60, color: _accent),
                                   const SizedBox(height: 16),
                                   Text(
                                     'Belum ada QR Code nih!',
@@ -126,21 +139,24 @@ class _QrCodeListScreenState extends State<QrCodeListScreen> {
                           ],
                         )
                       : ListView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 10),
                           itemCount: _result.items.length,
                           itemBuilder: (context, index) {
                             final qr = _result.items[index];
                             final isLost = qr.status == 'lost';
-                            
+
                             return GestureDetector(
-                              onTap: () => context.push('/qrcodes/${qr.routeAssetId}'),
+                              onTap: () =>
+                                  context.push('/qrcodes/${qr.routeAssetId}'),
                               child: Container(
                                 margin: const EdgeInsets.only(bottom: 10),
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFFFFAFA),
                                   borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(color: const Color(0xFFFFE3E3)),
+                                  border: Border.all(
+                                      color: const Color(0xFFFFE3E3)),
                                   boxShadow: [
                                     BoxShadow(
                                       color: Colors.black.withOpacity(0.04),
@@ -157,13 +173,15 @@ class _QrCodeListScreenState extends State<QrCodeListScreen> {
                                         width: 48,
                                         height: 48,
                                         color: const Color(0xFFFFE9E9),
-                                        child: const Icon(Icons.qr_code_2, color: _accent, size: 24),
+                                        child: const Icon(Icons.qr_code_2,
+                                            color: _accent, size: 24),
                                       ),
                                     ),
                                     const SizedBox(width: 12),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             qr.name,
@@ -189,13 +207,18 @@ class _QrCodeListScreenState extends State<QrCodeListScreen> {
                                       ),
                                     ),
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 3),
                                       decoration: BoxDecoration(
-                                        color: isLost ? Colors.red.shade50 : const Color(0x1AA30000),
+                                        color: isLost
+                                            ? Colors.red.shade50
+                                            : const Color(0x1AA30000),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: Text(
-                                        isLost ? 'Hilang' : (qr.status ?? 'Aktif'),
+                                        isLost
+                                            ? 'Hilang'
+                                            : (qr.status ?? 'Aktif'),
                                         style: TextStyle(
                                           fontSize: 10,
                                           fontWeight: FontWeight.w700,
@@ -216,7 +239,8 @@ class _QrCodeListScreenState extends State<QrCodeListScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(24)),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.05),
@@ -226,55 +250,49 @@ class _QrCodeListScreenState extends State<QrCodeListScreen> {
                 ],
               ),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _page > 1 && !_loading ? () => _load(page: _page - 1) : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _accent,
-                        foregroundColor: Colors.white,
-                        disabledBackgroundColor: Colors.grey.shade300,
-                        disabledForegroundColor: Colors.grey.shade600,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
+                  ElevatedButton(
+                    onPressed: _page > 1 && !_loading
+                        ? () => _load(page: _page - 1)
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _accent,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.grey.shade300,
+                      disabledForegroundColor: Colors.grey.shade600,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Text(
-                        'Sebelumnya',
-                        style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
-                      ),
+                      elevation: 0,
+                      minimumSize: const Size(56, 48),
+                    ),
+                    child: const Icon(Icons.arrow_back_ios_new, size: 18),
+                  ),
+                  Text(
+                    'Hal ${_result.currentPage}/${_result.lastPage}',
+                    style: GoogleFonts.montserrat(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                      color: Colors.black87,
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      'Hal. ${_result.currentPage}/${_result.lastPage}',
-                      style: GoogleFonts.montserrat(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
-                        color: Colors.black87,
+                  ElevatedButton(
+                    onPressed: _result.hasMore && !_loading
+                        ? () => _load(page: _page + 1)
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _accent,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.grey.shade300,
+                      disabledForegroundColor: Colors.grey.shade600,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
+                      elevation: 0,
+                      minimumSize: const Size(56, 48),
                     ),
-                  ),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _result.hasMore && !_loading ? () => _load(page: _page + 1) : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _accent,
-                        foregroundColor: Colors.white,
-                        disabledBackgroundColor: Colors.grey.shade300,
-                        disabledForegroundColor: Colors.grey.shade600,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        'Berikutnya',
-                        style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
-                      ),
-                    ),
+                    child: const Icon(Icons.arrow_forward_ios, size: 18),
                   ),
                 ],
               ),

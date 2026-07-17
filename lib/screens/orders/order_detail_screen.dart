@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
@@ -19,12 +20,61 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   static const Color _accent = Color(0xFFB00000);
   
   bool _loading = false;
+  bool _cancelling = false;
   OrderModel? _order;
 
   @override
   void initState() {
     super.initState();
     _load();
+  }
+
+  Future<void> _cancelOrder() async {
+    final orderId = widget.orderId;
+    setState(() => _cancelling = true);
+    try {
+      await context.read<OrderService>().cancelOrder(orderId);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Pesanan berhasil dibatalkan.')),
+      );
+      _load();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Gagal membatalkan pesanan.')),
+      );
+    } finally {
+      if (mounted) setState(() => _cancelling = false);
+    }
+  }
+
+  void _payOrder(OrderModel order) {
+    if (order.snapUrl != null && order.snapUrl!.isNotEmpty) {
+      context.push('/shop/payment?snapUrl=${Uri.encodeComponent(order.snapUrl!)}&orderId=${order.id}').then((_) {
+        _load();
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Tautan pembayaran tidak tersedia.')),
+      );
+    }
+  }
+
+  String _formatDateTime(String? dateStr) {
+    if (dateStr == null || dateStr.isEmpty) return '-';
+    try {
+      final dt = DateTime.parse(dateStr).toLocal();
+      final day = dt.day.toString().padLeft(2, '0');
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+      final month = (dt.month >= 1 && dt.month <= 12) ? months[dt.month - 1] : '';
+      final year = dt.year;
+      final hour = dt.hour.toString().padLeft(2, '0');
+      final minute = dt.minute.toString().padLeft(2, '0');
+      return '$day $month $year, $hour:$minute';
+    } catch (_) {
+      return dateStr; // fallback if parse fails
+    }
   }
 
   Future<void> _load() async {
@@ -98,7 +148,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       _buildOrderSummaryCard(order),
                       const SizedBox(height: 24),
                       Text(
-                        'Barang yang Dipesan',
+                        'Nama Barang / Paket Langganan',
                         style: GoogleFonts.montserrat(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
@@ -107,6 +157,49 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       ),
                       const SizedBox(height: 12),
                       ...order.items.map((item) => _buildItemCard(item)),
+                      if (order.status.toLowerCase() == 'pending') ...[
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: _cancelling ? null : () => _payOrder(order),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _accent,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text(
+                              'Bayar Sekarang',
+                              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton(
+                            onPressed: _cancelling ? null : _cancelOrder,
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.red,
+                              side: const BorderSide(color: Colors.red),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: _cancelling 
+                                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.red, strokeWidth: 2))
+                                : const Text(
+                                    'Batalkan Pesanan',
+                                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                                  ),
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 20),
                     ],
                   ),
                 ),
@@ -205,9 +298,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           const SizedBox(height: 20),
           Divider(color: Colors.grey.shade200, thickness: 1.5),
           const SizedBox(height: 16),
-          _buildInfoRow('Dipesan pada:', order.createdAt ?? '-'),
-          const SizedBox(height: 10),
-          _buildInfoRow('Pembayaran:', order.paymentMethod ?? '-'),
+          _buildInfoRow('Dipesan pada:', _formatDateTime(order.createdAt)),
           const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,

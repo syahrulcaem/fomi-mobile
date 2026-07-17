@@ -270,21 +270,13 @@ class _SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFB71C1C), Color(0xFFD32F2F), Color(0xFFE53935)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: Center(
-          child: Image.asset(
-            'assets/icon/icon.png',
-            width: 180,
-            height: 180,
-            fit: BoxFit.contain,
-          ),
+      backgroundColor: const Color(0xFFFFEBEE),
+      body: Center(
+        child: Image.asset(
+          'assets/icon/icon.png',
+          width: 180,
+          height: 180,
+          fit: BoxFit.contain,
         ),
       ),
     );

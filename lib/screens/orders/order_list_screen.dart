@@ -69,6 +69,16 @@ class _OrderListScreenState extends State<OrderListScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/dashboard');
+            }
+          },
+        ),
         title: Text(
           'Kiriman Pesananku',
           style: GoogleFonts.montserrat(
@@ -105,7 +115,7 @@ class _OrderListScreenState extends State<OrderListScreen> {
                             Container(
                               padding: const EdgeInsets.all(24),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFFFF5F5),
+                                color: const Color(0xFFFFEBEE),
                                 borderRadius: BorderRadius.circular(14),
                               ),
                               child: Column(
@@ -230,55 +240,45 @@ class _OrderListScreenState extends State<OrderListScreen> {
                 ],
               ),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _page > 1 && !_loading ? () => _load(page: _page - 1) : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _accent,
-                        foregroundColor: Colors.white,
-                        disabledBackgroundColor: Colors.grey.shade300,
-                        disabledForegroundColor: Colors.grey.shade600,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
+                  ElevatedButton(
+                    onPressed: _page > 1 && !_loading ? () => _load(page: _page - 1) : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _accent,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.grey.shade300,
+                      disabledForegroundColor: Colors.grey.shade600,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Text(
-                        'Sebelumnya',
-                        style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
-                      ),
+                      elevation: 0,
+                      minimumSize: const Size(56, 48),
+                    ),
+                    child: const Icon(Icons.arrow_back_ios_new, size: 18),
+                  ),
+                  Text(
+                    'Hal ${_result.currentPage}/${_result.lastPage}',
+                    style: GoogleFonts.montserrat(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                      color: Colors.black87,
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      'Hal. ${_result.currentPage}/${_result.lastPage}',
-                      style: GoogleFonts.montserrat(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
-                        color: Colors.black87,
+                  ElevatedButton(
+                    onPressed: _result.hasMore && !_loading ? () => _load(page: _page + 1) : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _accent,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.grey.shade300,
+                      disabledForegroundColor: Colors.grey.shade600,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
+                      elevation: 0,
+                      minimumSize: const Size(56, 48),
                     ),
-                  ),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _result.hasMore && !_loading ? () => _load(page: _page + 1) : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _accent,
-                        foregroundColor: Colors.white,
-                        disabledBackgroundColor: Colors.grey.shade300,
-                        disabledForegroundColor: Colors.grey.shade600,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        'Berikutnya',
-                        style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
-                      ),
-                    ),
+                    child: const Icon(Icons.arrow_forward_ios, size: 18),
                   ),
                 ],
               ),

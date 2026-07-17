@@ -18,7 +18,7 @@ class QrCodeDetailScreen extends StatefulWidget {
 
 class _QrCodeDetailScreenState extends State<QrCodeDetailScreen> {
   static const Color _accent = Color(0xFFB00000);
-  
+
   bool _loading = false;
   QrCodeModel? _qrcode;
 
@@ -95,7 +95,8 @@ class _QrCodeDetailScreenState extends State<QrCodeDetailScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.qr_code_scanner_outlined, size: 60, color: _accent),
+                      const Icon(Icons.qr_code_scanner_outlined,
+                          size: 60, color: _accent),
                       const SizedBox(height: 16),
                       Text(
                         'Data QR tidak ditemukan',
@@ -121,7 +122,8 @@ class _QrCodeDetailScreenState extends State<QrCodeDetailScreen> {
                         children: [
                           Expanded(
                             child: OutlinedButton.icon(
-                              onPressed: () => context.push('/qrcodes/${widget.assetId}/edit'),
+                              onPressed: () => context
+                                  .push('/qrcodes/${widget.assetId}/edit'),
                               icon: const Icon(Icons.edit_outlined, size: 18),
                               label: Text(
                                 'Edit QR',
@@ -131,8 +133,10 @@ class _QrCodeDetailScreenState extends State<QrCodeDetailScreen> {
                               ),
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: _accent,
-                                side: const BorderSide(color: _accent, width: 1.5),
-                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                side: const BorderSide(
+                                    color: _accent, width: 1.5),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 14),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -149,7 +153,11 @@ class _QrCodeDetailScreenState extends State<QrCodeDetailScreen> {
                                       height: 18,
                                       child: CircularProgressIndicator(
                                           color: Colors.white, strokeWidth: 2))
-                                  : Icon(qr.isLost ? Icons.check_circle_outline : Icons.warning_amber_rounded, size: 18),
+                                  : Icon(
+                                      qr.isLost
+                                          ? Icons.check_circle_outline
+                                          : Icons.warning_amber_rounded,
+                                      size: 18),
                               label: Text(
                                 qr.isLost ? 'Barang Ketemu' : 'Barang Hilang',
                                 style: GoogleFonts.montserrat(
@@ -157,10 +165,12 @@ class _QrCodeDetailScreenState extends State<QrCodeDetailScreen> {
                                 ),
                               ),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: qr.isLost ? Colors.green.shade600 : _accent,
+                                backgroundColor:
+                                    qr.isLost ? Colors.green.shade600 : _accent,
                                 foregroundColor: Colors.white,
                                 elevation: 0,
-                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 14),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -197,7 +207,7 @@ class _QrCodeDetailScreenState extends State<QrCodeDetailScreen> {
 
   Widget _buildMainCard(QrCodeModel qr) {
     final bool hasImage = qr.imageUrl != null && qr.imageUrl!.isNotEmpty;
-    
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -219,14 +229,15 @@ class _QrCodeDetailScreenState extends State<QrCodeDetailScreen> {
             child: hasImage
                 ? Image.network(
                     qr.imageUrl!,
-                    height: 220,
+                    height: 260,
                     width: double.infinity,
-                    fit: BoxFit.cover,
+                    fit: BoxFit.contain,
                     errorBuilder: (_, __, ___) => Container(
                       height: 220,
                       width: double.infinity,
                       color: const Color(0xFFFFF5F5),
-                      child: const Icon(Icons.broken_image_outlined, size: 60, color: Colors.grey),
+                      child: const Icon(Icons.broken_image_outlined,
+                          size: 60, color: Colors.grey),
                     ),
                   )
                 : Container(
@@ -235,7 +246,8 @@ class _QrCodeDetailScreenState extends State<QrCodeDetailScreen> {
                     decoration: const BoxDecoration(
                       color: Color(0xFFFFF5F5),
                     ),
-                    child: const Icon(Icons.qr_code_2_rounded, size: 80, color: _accent),
+                    child: const Icon(Icons.qr_code_2_rounded,
+                        size: 80, color: _accent),
                   ),
           ),
           const SizedBox(height: 20),
@@ -305,7 +317,8 @@ class _QrCodeDetailScreenState extends State<QrCodeDetailScreen> {
                   color: Color(0xFFFFF5F5),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.contact_mail_outlined, color: _accent, size: 20),
+                child: const Icon(Icons.contact_mail_outlined,
+                    color: _accent, size: 20),
               ),
               const SizedBox(width: 12),
               Text(
@@ -321,16 +334,20 @@ class _QrCodeDetailScreenState extends State<QrCodeDetailScreen> {
           const SizedBox(height: 16),
           Divider(color: Colors.grey.shade100, thickness: 1.5, height: 1),
           const SizedBox(height: 16),
-          _buildContactRow(Icons.person_outline_rounded, 'Nama', qr.contactInfo?['name']),
+          _buildContactRow(
+              Icons.person_outline_rounded, 'Nama', qr.contactInfo?['name']),
           const SizedBox(height: 16),
-          _buildContactRow(Icons.phone_outlined, 'Telepon', qr.contactInfo?['phone']),
+          _buildContactRow(
+              Icons.phone_outlined, 'Telepon', qr.contactInfo?['phone']),
           const SizedBox(height: 16),
-          _buildContactRow(Icons.email_outlined, 'Email', qr.contactInfo?['email']),
+          _buildContactRow(
+              Icons.email_outlined, 'Email', qr.contactInfo?['email']),
           if (qr.scanLogsCount != null) ...[
             const SizedBox(height: 16),
             Divider(color: Colors.grey.shade100, thickness: 1.5, height: 1),
             const SizedBox(height: 16),
-            _buildContactRow(Icons.history_rounded, 'Jumlah Scan', '${qr.scanLogsCount} kali discan'),
+            _buildContactRow(Icons.history_rounded, 'Jumlah Scan',
+                '${qr.scanLogsCount} kali discan'),
           ],
         ],
       ),
@@ -371,7 +388,3 @@ class _QrCodeDetailScreenState extends State<QrCodeDetailScreen> {
     );
   }
 }
-
-
-
-

@@ -39,4 +39,8 @@ class OrderService {
   static PaginatedResponse<OrderModel> extractPaginatedOrders(dynamic raw) {
     return PaginatedResponse.fromAny<OrderModel>(raw, OrderModel.fromJson);
   }
+
+  Future<void> cancelOrder(String orderId) async {
+    await _apiClient.dio.post('/user/orders/$orderId/cancel');
+  }
 }
