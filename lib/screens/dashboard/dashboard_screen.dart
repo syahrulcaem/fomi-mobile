@@ -1,12 +1,12 @@
-﻿import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-import '../../core/app_theme.dart';
 import '../../models/asset_model.dart';
 import '../../models/dashboard_model.dart';
-import '../../models/order_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/dashboard_service.dart';
 import '../../widgets/skeleton_loader.dart';
@@ -19,9 +19,19 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  static const Color _accent = Color(0xFFB00000);
+
   bool _loading = false;
   String? _error;
   DashboardModel? _dashboard;
+  int _activeBanner = 0;
+
+  final List<String> _bannerAssets = const [
+    'assets/images/banner1.png',
+    'assets/images/banner2.png',
+    'assets/images/banner3.png',
+    'assets/images/banner4.png',
+  ];
 
   @override
   void initState() {
@@ -46,62 +56,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  String _formatPrice(int price) {
-    final str = price.toString();
-    final buf = StringBuffer();
-    for (int i = 0; i < str.length; i++) {
-      if (i > 0 && (str.length - i) % 3 == 0) buf.write('.');
-      buf.write(str[i]);
-    }
-    return 'Rp ${buf.toString()}';
-  }
-
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     final stats = _dashboard?.stats;
 
     return Scaffold(
-      backgroundColor: AppColors.bgBlue,
+      backgroundColor: Colors.white,
       body: RefreshIndicator(
         onRefresh: _load,
-        color: AppColors.primaryBlue,
+        color: _accent,
         child: CustomScrollView(
           slivers: [
-            //
             SliverToBoxAdapter(child: _buildHeader(auth)),
-
-            //
+            SliverToBoxAdapter(child: _buildBannerCarousel()),
             if (_loading)
-              SliverToBoxAdapter(child: _buildStatsSkeletons())
+              SliverToBoxAdapter(child: _buildSummarySkeleton())
             else if (_error == null)
-              SliverToBoxAdapter(child: _buildStats(stats)),
-
-            //
+              SliverToBoxAdapter(child: _buildSummaryCard(stats)),
             if (_error != null && !_loading)
               SliverToBoxAdapter(child: _buildError()),
-
-            //
-            SliverToBoxAdapter(child: _buildScanCta()),
-
-            //
             SliverToBoxAdapter(
-                child: _buildSectionHeader('QR Code Milikku', '/qrcodes')),
-            SliverToBoxAdapter(child: _buildQrScroll()),
-
-            //
-            SliverToBoxAdapter(
-                child: _buildSectionHeader('Barang Terbaru', '/qrcodes')),
-            _buildRecentItems(),
-
-            //
-            SliverToBoxAdapter(
-                child: _buildSectionHeader('Pesanan Terkini', '/orders')),
-            _buildRecentOrders(),
-
-            //
-            SliverToBoxAdapter(child: _buildQuickLinks()),
-
+              child: _buildSectionHeader('Daftar Barang', '/qrcodes'),
+            ),
+            _buildAssetList(),
             const SliverToBoxAdapter(child: SizedBox(height: 100)),
           ],
         ),
@@ -109,171 +87,290 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  //
-  // Header
-  //
-
   Widget _buildHeader(AuthProvider auth) {
-    final name = auth.currentUser?.name ?? 'Sobat';
-    return Container(
-      decoration: const BoxDecoration(gradient: AppGradients.heroGradient),
+    final fullName = auth.currentUser?.name.trim();
+    final shortName = (fullName == null || fullName.isEmpty)
+        ? 'Sobat'
+        : fullName.split(' ').first;
+
+    return Padding(
       padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 16,
+        top: MediaQuery.of(context).padding.top + 8,
         left: 20,
         right: 20,
-        bottom: 28,
+        bottom: 8,
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              // Logo
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: Image.asset(
                   'assets/icon/icon.png',
                   width: 36,
                   height: 36,
-                  fit: BoxFit.cover,
                 ),
               ),
-              const SizedBox(width: 8),
-              const Text('FOMI',
-                  style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 18,
-                      color: AppColors.darkBlue)),
-              const Spacer(),
-              // Profile avatar
-              GestureDetector(
-                onTap: () => context.push('/profile'),
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.8),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(Icons.person_outline,
-                      color: AppColors.primaryBlue, size: 20),
+              const SizedBox(width: 10),
+              Text(
+                'Home',
+                style: GoogleFonts.montserrat(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black,
                 ),
+              ),
+              const Spacer(),
+              IconButton(
+                onPressed: () => context.push('/profile'),
+                icon: const Icon(Icons.person_outline, color: Colors.black87),
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          // Greeting
+          const SizedBox(height: 8),
           Text(
-            'Halo, $name!',
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w900,
-              color: AppColors.darkBlue,
+            'Hi $shortName!',
+            style: GoogleFonts.montserrat(
+              fontSize: 32,
+              fontWeight: FontWeight.w500,
+              color: Colors.black,
             ),
           ),
-          const SizedBox(height: 4),
-          const Text(
-            'Semua barang dan asetmu ada di sini.',
-            style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+          const SizedBox(height: 2),
+          Text(
+            'semoga barangmu aman ya hari ini',
+            style: GoogleFonts.montserrat(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: ElevatedButton(
+              onPressed: () => context.push('/scan'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _accent,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 0,
+              ),
+              child: const Text(
+                'Scan QR',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  //
-  // Stats
-  //
+  Widget _buildBannerCarousel() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+      child: Column(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: CarouselSlider.builder(
+              itemCount: _bannerAssets.length,
+              itemBuilder: (context, index, realIndex) {
+                return Image.asset(
+                  _bannerAssets[index],
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                );
+              },
+              options: CarouselOptions(
+                height: 190,
+                viewportFraction: 1,
+                autoPlay: true,
+                autoPlayInterval: const Duration(seconds: 4),
+                onPageChanged: (index, _) {
+                  setState(() => _activeBanner = index);
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(
+              _bannerAssets.length,
+              (index) => AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                margin: const EdgeInsets.symmetric(horizontal: 3),
+                height: 7,
+                width: _activeBanner == index ? 20 : 7,
+                decoration: BoxDecoration(
+                  color: _activeBanner == index ? _accent : Colors.black26,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-  Widget _buildStats(DashboardStats? stats) {
-    if (stats == null) return const SizedBox.shrink();
+  Widget _buildSummaryCard(DashboardStats? stats) {
+    if (stats == null) {
+      return const SizedBox.shrink();
+    }
 
-    final items = [
-      _StatData('Barang', '${stats.totalAssets}', Icons.inventory_2_outlined,
-          AppColors.primaryBlue),
-      _StatData('QR Aktif', '${stats.activeQrCodes}', Icons.qr_code_2,
-          AppColors.success),
-      _StatData('Pesanan', '${stats.totalOrders}',
-          Icons.local_shipping_outlined, const Color(0xFFF59E0B)),
-      _StatData('Kuota', '${stats.remainingBarcodeQuota}',
-          Icons.confirmation_number_outlined, const Color(0xFF8B5CF6)),
+    final summaryItems = [
+      _SummaryItem('Total Barang', '${stats.totalAssets}',
+          Icons.inventory_2_outlined, '/qrcodes'),
+      _SummaryItem(
+          'QR Aktif', '${stats.activeQrCodes}', Icons.qr_code_2, '/qrcodes'),
+      _SummaryItem('Total Pesanan', '${stats.totalOrders}',
+          Icons.local_shipping_outlined, '/orders'),
+      _SummaryItem('Barang Hilang', '${stats.lostAssets}',
+          Icons.location_off_outlined, '/qrcodes'),
     ];
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-      child: Row(
-        children: items
-            .map((s) => Expanded(
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(14, 14, 14, 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(19),
+          border: Border.all(color: const Color(0xFFA30000), width: 1.2),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 12,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Ringkasan Dashboard',
+              style: GoogleFonts.montserrat(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              'Snapshot data terbaru akun kamu.',
+              style: GoogleFonts.montserrat(
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: Colors.black54,
+              ),
+            ),
+            const SizedBox(height: 12),
+            GridView.builder(
+              padding: EdgeInsets.zero,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: summaryItems.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 10,
+                crossAxisSpacing: 10,
+                childAspectRatio: 1.8,
+              ),
+              itemBuilder: (context, index) {
+                final item = summaryItems[index];
+                final isPrimary = index == 0;
+
+                return GestureDetector(
+                  onTap: () {
+                    if (item.route != null) {
+                      context.push(item.route!);
+                    }
+                  },
                   child: Container(
-                    margin: EdgeInsets.only(right: s == items.last ? 0 : 10),
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: s.color.withOpacity(0.12),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: isPrimary
+                            ? const [Color(0xFFBF0000), Color(0xFF940000)]
+                            : const [Color(0x3BBF0000), Color(0x3B940000)],
+                      ),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(s.icon, color: s.color, size: 20),
+                        Icon(
+                          item.icon,
+                          size: 16,
+                          color: isPrimary
+                              ? Colors.white
+                              : const Color(0xFF7A0000),
+                        ),
                         const SizedBox(height: 6),
                         Text(
-                          s.value,
+                          item.value,
                           style: TextStyle(
                             fontSize: 18,
-                            fontWeight: FontWeight.w900,
-                            color: s.color,
+                            fontWeight: FontWeight.w800,
+                            color: isPrimary
+                                ? Colors.white
+                                : const Color(0xFF7A0000),
                           ),
                         ),
-                        const SizedBox(height: 2),
                         Text(
-                          s.label,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textSecondary),
+                          item.label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: isPrimary
+                                ? Colors.white.withOpacity(0.95)
+                                : const Color(0xFF7A0000),
+                          ),
                         ),
                       ],
                     ),
                   ),
-                ))
-            .toList(),
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildStatsSkeletons() {
+  Widget _buildSummarySkeleton() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-      child: Row(
-        children: List.generate(
-            4,
-            (i) => Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.only(right: i < 3 ? 10 : 0),
-                    child: const SkeletonLoader(
-                        width: double.infinity, height: 76, borderRadius: 16),
-                  ),
-                )),
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+      child: Column(
+        children: const [
+          SkeletonLoader(width: double.infinity, height: 90, borderRadius: 19),
+          SizedBox(height: 10),
+          SkeletonLoader(width: double.infinity, height: 160, borderRadius: 12),
+        ],
       ),
     );
   }
-
-  //
-  // Error
-  //
 
   Widget _buildError() {
     return GestureDetector(
       onTap: _load,
       child: Container(
-        margin: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+        margin: const EdgeInsets.fromLTRB(20, 14, 20, 0),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.red.shade50,
@@ -295,102 +392,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  //
-  // Primary CTA
-  //
-
-  Widget _buildScanCta() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-      child: GestureDetector(
-        onTap: () => context.push('/scan'),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [AppColors.primaryBlue, AppColors.midBlue],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primaryBlue.withOpacity(0.35),
-                blurRadius: 16,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Icon(Icons.qr_code_scanner,
-                    color: Colors.white, size: 32),
-              ),
-              const SizedBox(width: 16),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Scan Merchandise',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800),
-                    ),
-                    SizedBox(height: 2),
-                    Text(
-                      'Daftarkan & kelola produk FOMI-mu',
-                      style: TextStyle(color: Colors.white70, fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(Icons.arrow_forward_ios_rounded,
-                  color: Colors.white70, size: 16),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  //
-  // Section header
-  //
-
   Widget _buildSectionHeader(String title, String route) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 28, 20, 12),
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(title,
-              style: const TextStyle(
+              style: GoogleFonts.montserrat(
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary)),
+                  color: Colors.black)),
           GestureDetector(
             onTap: () => context.push(route),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: AppColors.softBlue,
+                color: const Color(0xFFFFE6E6),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Text('Lihat Semua',
-                  style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.primaryBlue,
-                      fontWeight: FontWeight.w600)),
+              child: const Text(
+                'Lihat Semua',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: _accent,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
           ),
         ],
@@ -398,122 +426,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  //
-  // QR Codes Horizontal Scroll
-  //
-
-  Widget _buildQrScroll() {
-    if (_loading) {
-      return SizedBox(
-        height: 110,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          itemCount: 4,
-          separatorBuilder: (_, __) => const SizedBox(width: 12),
-          itemBuilder: (_, __) =>
-              const SkeletonLoader(width: 90, height: 110, borderRadius: 16),
-        ),
-      );
-    }
-
-    final assets = _dashboard?.recentAssets ?? [];
-    if (assets.isEmpty) {
-      return Container(
-        height: 80,
-        margin: const EdgeInsets.symmetric(horizontal: 20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: const Center(
-          child: Text('Belum ada QR Code',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-        ),
-      );
-    }
-
-    return SizedBox(
-      height: 110,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: assets.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 12),
-        itemBuilder: (context, index) => _buildQrCard(assets[index]),
-      ),
-    );
-  }
-
-  Widget _buildQrCard(AssetModel asset) {
-    return GestureDetector(
-      onTap: () => context.push('/qrcodes/${asset.id}'),
-      child: Container(
-        width: 90,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-                color: AppColors.lightBlue.withOpacity(0.2),
-                blurRadius: 8,
-                offset: const Offset(0, 3)),
-          ],
-        ),
-        child: Column(
-          children: [
-            Expanded(
-              child: ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(16)),
-                child: asset.image != null && asset.image!.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: asset.image!,
-                        width: 90,
-                        fit: BoxFit.cover,
-                        errorWidget: (_, __, ___) => _qrPlaceholder(),
-                      )
-                    : _qrPlaceholder(),
-              ),
-            ),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 6),
-              decoration: const BoxDecoration(
-                color: AppColors.primaryBlue,
-                borderRadius:
-                    BorderRadius.vertical(bottom: Radius.circular(16)),
-              ),
-              child: Text(
-                asset.name,
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 9,
-                    fontWeight: FontWeight.w700),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _qrPlaceholder() {
-    return Container(
-      color: AppColors.softBlue,
-      child: const Center(
-          child: Icon(Icons.qr_code_2, color: AppColors.primaryBlue, size: 36)),
-    );
-  }
-
-  //
-  // Recent Items
-  //
-
-  Widget _buildRecentItems() {
+  Widget _buildAssetList() {
     if (_loading) {
       return SliverPadding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -522,27 +435,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
             (_, __) => const Padding(
               padding: EdgeInsets.only(bottom: 10),
               child: SkeletonLoader(
-                  width: double.infinity, height: 68, borderRadius: 14),
+                width: double.infinity,
+                height: 74,
+                borderRadius: 14,
+              ),
             ),
-            childCount: 3,
+            childCount: 5,
           ),
         ),
       );
     }
 
-    final items = _dashboard?.recentAssets ?? [];
-    if (items.isEmpty) {
+    final assets = _dashboard?.recentAssets ?? [];
+    if (assets.isEmpty) {
       return SliverToBoxAdapter(
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 20),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
+            color: const Color(0xFFFFF5F5),
+            borderRadius: BorderRadius.circular(14),
           ),
-          child: const Center(
-            child: Text('Belum ada barang',
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+          child: const Text(
+            'Belum ada barang terdaftar.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 13, color: Colors.black54),
           ),
         ),
       );
@@ -552,8 +469,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate(
-          (context, index) => _buildAssetRow(items[index]),
-          childCount: items.take(3).length,
+          (context, index) => _buildAssetRow(assets[index]),
+          childCount: assets.length,
         ),
       ),
     );
@@ -567,28 +484,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: const Color(0xFFFFFAFA),
           borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFFFE3E3)),
           boxShadow: [
             BoxShadow(
-                color: AppColors.lightBlue.withOpacity(0.18),
-                blurRadius: 8,
-                offset: const Offset(0, 2)),
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
           ],
         ),
         child: Row(
           children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: isLost ? Colors.red.shade50 : AppColors.softBlue,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                isLost ? Icons.search : Icons.inventory_2_outlined,
-                color: isLost ? Colors.red : AppColors.primaryBlue,
-                size: 22,
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: SizedBox(
+                width: 48,
+                height: 48,
+                child: asset.image != null && asset.image!.isNotEmpty
+                    ? CachedNetworkImage(
+                        imageUrl: asset.image!,
+                        fit: BoxFit.cover,
+                        errorWidget: (_, __, ___) => _assetPlaceholder(),
+                      )
+                    : _assetPlaceholder(),
               ),
             ),
             const SizedBox(width: 12),
@@ -602,21 +522,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary)),
+                          color: Colors.black87)),
                   Text(asset.description ?? 'Tidak ada deskripsi',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          fontSize: 11, color: AppColors.textSecondary)),
+                      style:
+                          const TextStyle(fontSize: 11, color: Colors.black54)),
                 ],
               ),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
-                color: isLost
-                    ? Colors.red.shade50
-                    : AppColors.success.withOpacity(0.1),
+                color: isLost ? Colors.red.shade50 : const Color(0x1AA30000),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
@@ -624,7 +542,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
-                    color: isLost ? Colors.red : AppColors.success),
+                    color: isLost ? Colors.red : _accent),
               ),
             ),
           ],
@@ -633,217 +551,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  //
-  // Recent Orders
-  //
-
-  Widget _buildRecentOrders() {
-    if (_loading) {
-      return SliverPadding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        sliver: SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (_, __) => const Padding(
-              padding: EdgeInsets.only(bottom: 10),
-              child: SkeletonLoader(
-                  width: double.infinity, height: 68, borderRadius: 14),
-            ),
-            childCount: 2,
-          ),
-        ),
-      );
-    }
-
-    final orders = _dashboard?.recentOrders ?? [];
-    if (orders.isEmpty) {
-      return SliverToBoxAdapter(
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 20),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: const Center(
-            child: Text('Belum ada pesanan',
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-          ),
-        ),
-      );
-    }
-
-    return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      sliver: SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (context, index) => _buildOrderRow(orders[index]),
-          childCount: orders.take(3).length,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildOrderRow(OrderModel order) {
-    return GestureDetector(
-      onTap: () => context.push('/orders/${order.id}'),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-                color: AppColors.lightBlue.withOpacity(0.18),
-                blurRadius: 8,
-                offset: const Offset(0, 2)),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: const Color(0xFFF59E0B).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(Icons.local_shipping_outlined,
-                  color: Color(0xFFF59E0B), size: 22),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(order.orderNumber,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary)),
-                  Text(_formatPrice(order.totalAmount),
-                      style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primaryBlue)),
-                ],
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: AppColors.softBlue,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                order.statusLabel,
-                style: const TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primaryBlue),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  //
-  // Quick Links
-  //
-
-  Widget _buildQuickLinks() {
-    final links = [
-      const _QuickLink('Pesananku', Icons.receipt_long_outlined, '/orders',
-          AppColors.primaryBlue),
-      const _QuickLink(
-          'Langganan', Icons.stars_rounded, '/renewal', AppColors.success),
-      const _QuickLink(
-          'QR Codes', Icons.qr_code_2, '/qrcodes', Color(0xFF8B5CF6)),
-      const _QuickLink('Produk Digital', Icons.download_rounded,
-          '/digital-products', Color(0xFF0EA5E9)),
-    ];
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('Menu Cepat',
-              style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary)),
-          const SizedBox(height: 14),
-          Row(
-            children: links
-                .map((l) => Expanded(
-                      child: GestureDetector(
-                        onTap: () => context.push(l.route),
-                        child: Container(
-                          margin:
-                              EdgeInsets.only(right: l == links.last ? 0 : 10),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                  color: l.color.withOpacity(0.12),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 3)),
-                            ],
-                          ),
-                          child: Column(
-                            children: [
-                              Container(
-                                width: 44,
-                                height: 44,
-                                decoration: BoxDecoration(
-                                  color: l.color.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Icon(l.icon, color: l.color, size: 22),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(l.label,
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.textPrimary)),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ))
-                .toList(),
-          ),
-        ],
-      ),
+  Widget _assetPlaceholder() {
+    return Container(
+      color: const Color(0xFFFFE9E9),
+      child: const Icon(Icons.inventory_2_outlined, color: _accent, size: 24),
     );
   }
 }
 
-//
-// Data classes
-//
-
-class _StatData {
-  const _StatData(this.label, this.value, this.icon, this.color);
+class _SummaryItem {
+  const _SummaryItem(this.label, this.value, this.icon, [this.route]);
   final String label;
   final String value;
   final IconData icon;
-  final Color color;
-}
-
-class _QuickLink {
-  const _QuickLink(this.label, this.icon, this.route, this.color);
-  final String label;
-  final IconData icon;
-  final String route;
-  final Color color;
+  final String? route;
 }

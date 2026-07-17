@@ -2,9 +2,10 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-import '../../core/app_theme.dart';
+import '../../core/shop_theme.dart';
 import '../../core/png_file_saver.dart';
 import '../../models/digital_product_model.dart';
 import '../../services/shop_service.dart';
@@ -381,14 +382,35 @@ class _DigitalProductsScreenState extends State<DigitalProductsScreen> {
     final assets = payload?.activeQrAssets ?? const <UserDigitalProductAsset>[];
 
     return Scaffold(
-      backgroundColor: AppColors.bgBlue,
+      backgroundColor: SC.bg,
       appBar: AppBar(
-        title: const Text('Produk Digital Saya'),
+        backgroundColor: SC.white,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        leading: Padding(
+          padding: const EdgeInsets.all(10),
+          child: GestureDetector(
+            onTap: () => Navigator.of(context).maybePop(),
+            child: Container(
+              decoration: BoxDecoration(
+                color: SC.redLight,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.arrow_back_ios_new, size: 16, color: SC.red),
+            ),
+          ),
+        ),
+        title: Text('Produk Digital Saya',
+            style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: SC.textPrimary)),
       ),
       body: RefreshIndicator(
         onRefresh: () => _load(forceRefresh: true),
+        color: SC.red,
         child: _loading
-            ? const Center(child: CircularProgressIndicator())
+            ? const Center(child: CircularProgressIndicator(color: SC.red))
             : _error != null
                 ? ListView(
                     padding: const EdgeInsets.all(20),
@@ -396,9 +418,9 @@ class _DigitalProductsScreenState extends State<DigitalProductsScreen> {
                       Container(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: Colors.red.shade50,
+                          color: SC.redLight,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.red.shade100),
+                          border: Border.all(color: SC.redSoft),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -447,13 +469,13 @@ class _DigitalProductsScreenState extends State<DigitalProductsScreen> {
       return Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.orange.shade50,
+          color: SC.redLight,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.orange.shade100),
+          border: Border.all(color: SC.redSoft),
         ),
-        child: const Text(
+        child: Text(
           'Belum ada QR aktif. Preview/download tetap bisa dicoba dengan default asset dari backend jika tersedia.',
-          style: TextStyle(fontSize: 12),
+          style: GoogleFonts.poppins(fontSize: 12, color: SC.red),
         ),
       );
     }
@@ -532,47 +554,31 @@ class _DigitalProductsScreenState extends State<DigitalProductsScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.lightBlue.withOpacity(0.2),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: SC.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: SC.cardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             item.name,
-            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+            style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 15),
           ),
           const SizedBox(height: 4),
           Text(
             item.description?.trim().isNotEmpty == true
                 ? item.description!
                 : 'Tanpa deskripsi',
-            style:
-                const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            style: GoogleFonts.poppins(fontSize: 12, color: SC.textSecondary),
           ),
           const SizedBox(height: 8),
-          Text(
-            'Order: ${item.orderNumber ?? '-'}',
-            style:
-                const TextStyle(fontSize: 11, color: AppColors.textSecondary),
-          ),
-          Text(
-            'Dibeli: ${_formatDate(item.purchasedAt)}',
-            style:
-                const TextStyle(fontSize: 11, color: AppColors.textSecondary),
-          ),
-          Text(
-            'Template: ${item.templateName ?? '-'}',
-            style:
-                const TextStyle(fontSize: 11, color: AppColors.textSecondary),
-          ),
+          Text('Order: ${item.orderNumber ?? '-'}',
+              style: GoogleFonts.poppins(fontSize: 11, color: SC.textSecondary)),
+          Text('Dibeli: ${_formatDate(item.purchasedAt)}',
+              style: GoogleFonts.poppins(fontSize: 11, color: SC.textSecondary)),
+          Text('Template: ${item.templateName ?? '-'}',
+              style: GoogleFonts.poppins(fontSize: 11, color: SC.textSecondary)),
           const SizedBox(height: 10),
           GestureDetector(
             onTap: (previewBytes != null && previewBytes.isNotEmpty)
@@ -582,9 +588,9 @@ class _DigitalProductsScreenState extends State<DigitalProductsScreen> {
               width: double.infinity,
               height: 160,
               decoration: BoxDecoration(
-                color: AppColors.bgBlue,
+                color: SC.bg,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.skyBlue),
+                border: Border.all(color: SC.redSoft),
               ),
               child: previewLoading
                   ? const Center(
@@ -603,16 +609,16 @@ class _DigitalProductsScreenState extends State<DigitalProductsScreen> {
                             children: [
                               const Icon(
                                 Icons.image_not_supported_outlined,
-                                color: AppColors.textSecondary,
+                                color: SC.textSecondary,
                               ),
                               const SizedBox(height: 6),
                               Text(
                                 previewFailed
                                     ? 'Preview gagal dimuat'
                                     : 'Preview belum tersedia',
-                                style: const TextStyle(
+                                style: GoogleFonts.poppins(
                                   fontSize: 12,
-                                  color: AppColors.textSecondary,
+                                  color: SC.textSecondary,
                                 ),
                               ),
                             ],
@@ -623,19 +629,35 @@ class _DigitalProductsScreenState extends State<DigitalProductsScreen> {
           const SizedBox(height: 10),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: downloadLoading ? null : () => _download(item),
-              icon: downloadLoading
-                  ? const SizedBox(
-                      width: 14,
-                      height: 14,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Icon(Icons.download_rounded, size: 18),
-              label: const Text('Download'),
+            child: GestureDetector(
+              onTap: downloadLoading ? null : () => _download(item),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 13),
+                decoration: BoxDecoration(
+                  gradient: downloadLoading ? null : SC.redGradient,
+                  color: downloadLoading ? Colors.grey.shade200 : null,
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: downloadLoading ? [] : SC.redShadow,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    downloadLoading
+                        ? const SizedBox(
+                            width: 14, height: 14,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white))
+                        : const Icon(Icons.download_rounded,
+                            size: 18, color: Colors.white),
+                    const SizedBox(width: 8),
+                    Text('Download',
+                        style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: downloadLoading ? SC.textSecondary : Colors.white)),
+                  ],
+                ),
+              ),
             ),
           ),
         ],

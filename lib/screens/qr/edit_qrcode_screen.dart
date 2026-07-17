@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../../services/qrcode_service.dart';
@@ -13,6 +14,8 @@ class EditQrCodeScreen extends StatefulWidget {
 }
 
 class _EditQrCodeScreenState extends State<EditQrCodeScreen> {
+  static const Color _accent = Color(0xFFB00000);
+
   final _nameController = TextEditingController();
   final _descController = TextEditingController();
   final _contactNameController = TextEditingController();
@@ -127,174 +130,221 @@ class _EditQrCodeScreenState extends State<EditQrCodeScreen> {
     }
   }
 
+  InputDecoration _buildInputDecoration(String label, IconData icon) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: GoogleFonts.montserrat(color: Colors.black54),
+      prefixIcon: Icon(icon, color: _accent),
+      filled: true,
+      fillColor: const Color(0xFFF9F9F9),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.grey.shade300),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.grey.shade300),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: _accent, width: 1.5),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Data QR')),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black),
+        title: Text(
+          'Edit Data QR',
+          style: GoogleFonts.montserrat(
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+            color: Colors.black,
+          ),
+        ),
+        centerTitle: true,
+      ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: _accent))
           : SingleChildScrollView(
               padding: const EdgeInsets.all(20),
-              child: Card(
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  side: BorderSide(color: Colors.blue.shade200, width: 2),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      const Icon(Icons.edit_note, size: 80, color: Colors.blue),
-                      const SizedBox(height: 24),
-                      TextField(
-                        controller: _nameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Nama Barang',
-                          prefixIcon: Icon(Icons.inventory_2_outlined),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      TextField(
-                        controller: _descController,
-                        decoration: const InputDecoration(
-                          labelText: 'Deskripsi Tambahan',
-                          prefixIcon: Icon(Icons.description_outlined),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      const Divider(thickness: 1.5),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Data Pemilik Asli',
-                        style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.orange.shade800),
-                      ),
-                      const SizedBox(height: 16),
-                      TextField(
-                        controller: _contactNameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Nama Kontak',
-                          prefixIcon: Icon(Icons.person_outline),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      TextField(
-                        controller: _contactPhoneController,
-                        keyboardType: TextInputType.phone,
-                        decoration: const InputDecoration(
-                          labelText: 'Nomor Telepon',
-                          prefixIcon: Icon(Icons.phone_outlined),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      TextField(
-                        controller: _contactEmailController,
-                        keyboardType: TextInputType.emailAddress,
-                        decoration: const InputDecoration(
-                          labelText: 'Alamat Email',
-                          prefixIcon: Icon(Icons.email_outlined),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      TextField(
-                        controller: _contactAddressController,
-                        decoration: const InputDecoration(
-                          labelText: 'Alamat',
-                          prefixIcon: Icon(Icons.location_on_outlined),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      TextField(
-                        controller: _contactNoteController,
-                        minLines: 2,
-                        maxLines: 4,
-                        decoration: const InputDecoration(
-                          labelText: 'Catatan Kontak',
-                          prefixIcon: Icon(Icons.sticky_note_2_outlined),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      DropdownButtonFormField<String>(
-                        value: _privacyMode,
-                        decoration: const InputDecoration(
-                          labelText: 'Mode Privasi',
-                          prefixIcon: Icon(Icons.shield_outlined),
-                        ),
-                        items: const [
-                          DropdownMenuItem(
-                            value: 'global',
-                            child: Text('Global'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'custom',
-                            child: Text('Custom'),
-                          ),
-                        ],
-                        onChanged: (value) {
-                          setState(() {
-                            _privacyMode = value;
-                            if (value != 'custom') {
-                              _visibleFields.clear();
-                            }
-                          });
-                        },
-                      ),
-                      if (_privacyMode == 'custom') ...[
-                        const SizedBox(height: 12),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            'Field yang ditampilkan',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blueGrey.shade700,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        ..._visibleFieldOptions.map(
-                          (field) => CheckboxListTile(
-                            value: _visibleFields.contains(field),
-                            onChanged: (checked) {
-                              setState(() {
-                                if (checked == true) {
-                                  _visibleFields.add(field);
-                                } else {
-                                  _visibleFields.remove(field);
-                                }
-                              });
-                            },
-                            title: Text(field),
-                            dense: true,
-                            contentPadding: EdgeInsets.zero,
-                            controlAffinity: ListTileControlAffinity.leading,
-                          ),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: Colors.grey.shade200),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.02),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
                         ),
                       ],
-                      const SizedBox(height: 32),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: _loading ? null : _save,
-                          icon: const Icon(Icons.save_rounded),
-                          label: Text(
-                              _loading ? 'Menyimpan...' : 'Simpan Perubahan'),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    child: Column(
+                      children: [
+                        const Icon(Icons.edit_note_rounded, size: 80, color: _accent),
+                        const SizedBox(height: 24),
+                        TextField(
+                          controller: _nameController,
+                          style: GoogleFonts.montserrat(),
+                          decoration: _buildInputDecoration('Nama Barang', Icons.inventory_2_outlined),
+                        ),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: _descController,
+                          style: GoogleFonts.montserrat(),
+                          decoration: _buildInputDecoration('Deskripsi Tambahan', Icons.description_outlined),
+                        ),
+                        const SizedBox(height: 24),
+                        Divider(color: Colors.grey.shade100, thickness: 1.5),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Data Pemilik Asli',
+                          style: GoogleFonts.montserrat(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
                           ),
                         ),
-                      )
-                    ],
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: _contactNameController,
+                          style: GoogleFonts.montserrat(),
+                          decoration: _buildInputDecoration('Nama Kontak', Icons.person_outline),
+                        ),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: _contactPhoneController,
+                          keyboardType: TextInputType.phone,
+                          style: GoogleFonts.montserrat(),
+                          decoration: _buildInputDecoration('Nomor Telepon', Icons.phone_outlined),
+                        ),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: _contactEmailController,
+                          keyboardType: TextInputType.emailAddress,
+                          style: GoogleFonts.montserrat(),
+                          decoration: _buildInputDecoration('Alamat Email', Icons.email_outlined),
+                        ),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: _contactAddressController,
+                          style: GoogleFonts.montserrat(),
+                          decoration: _buildInputDecoration('Alamat', Icons.location_on_outlined),
+                        ),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: _contactNoteController,
+                          minLines: 2,
+                          maxLines: 4,
+                          style: GoogleFonts.montserrat(),
+                          decoration: _buildInputDecoration('Catatan Kontak', Icons.sticky_note_2_outlined),
+                        ),
+                        const SizedBox(height: 24),
+                        DropdownButtonFormField<String>(
+                          value: _privacyMode,
+                          style: GoogleFonts.montserrat(color: Colors.black87),
+                          decoration: _buildInputDecoration('Mode Privasi', Icons.shield_outlined),
+                          items: [
+                            DropdownMenuItem(
+                              value: 'global',
+                              child: Text('Global', style: GoogleFonts.montserrat()),
+                            ),
+                            DropdownMenuItem(
+                              value: 'custom',
+                              child: Text('Custom', style: GoogleFonts.montserrat()),
+                            ),
+                          ],
+                          onChanged: (value) {
+                            setState(() {
+                              _privacyMode = value;
+                              if (value != 'custom') {
+                                _visibleFields.clear();
+                              }
+                            });
+                          },
+                        ),
+                        if (_privacyMode == 'custom') ...[
+                          const SizedBox(height: 16),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              'Field yang ditampilkan',
+                              style: GoogleFonts.montserrat(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          ..._visibleFieldOptions.map(
+                            (field) => CheckboxListTile(
+                              value: _visibleFields.contains(field),
+                              onChanged: (checked) {
+                                setState(() {
+                                  if (checked == true) {
+                                    _visibleFields.add(field);
+                                  } else {
+                                    _visibleFields.remove(field);
+                                  }
+                                });
+                              },
+                              title: Text(field, style: GoogleFonts.montserrat()),
+                              dense: true,
+                              activeColor: _accent,
+                              contentPadding: EdgeInsets.zero,
+                              controlAffinity: ListTileControlAffinity.leading,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: _loading ? null : _save,
+                      icon: _loading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                          : const Icon(Icons.save_rounded, size: 20, color: Colors.white),
+                      label: Text(
+                        _loading ? 'Menyimpan...' : 'Simpan Perubahan',
+                        style: GoogleFonts.montserrat(
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _accent,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  )
+                ],
               ),
             ),
     );
   }
 }
+
 
 
 

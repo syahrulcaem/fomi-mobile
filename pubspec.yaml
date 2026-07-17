@@ -48,12 +48,13 @@ dependencies:
   webview_flutter: ^4.10.0
   url_launcher: ^6.3.1
   webview_windows: ^0.4.0
-  google_fonts: ^6.2.1
+  google_fonts: ^6.3.0
   shared_preferences: ^2.3.2
   path_provider: ^2.1.4
   image_gallery_saver: ^2.0.3
   cached_network_image: ^3.4.1
   flutter_riverpod: ^2.6.1
+  carousel_slider: ^5.1.2
 
 dev_dependencies:
   flutter_test:
@@ -79,6 +80,10 @@ flutter:
   uses-material-design: true
   assets:
     - assets/icon/icon.png
+    - assets/images/banner1.png
+    - assets/images/banner2.png
+    - assets/images/banner3.png
+    - assets/images/banner4.png
 
 flutter_launcher_icons:
   android: true

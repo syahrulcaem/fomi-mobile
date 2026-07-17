@@ -1,9 +1,10 @@
-﻿import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-import '../../core/app_theme.dart';
+import '../../core/shop_theme.dart';
 import '../../models/shop_dashboard_model.dart';
 import '../../models/shop_product_model.dart';
 import '../../models/cart_item_model.dart';
@@ -185,17 +186,16 @@ class _ProductListScreenState extends State<ProductListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bgBlue,
+      backgroundColor: SC.bg,
       body: RefreshIndicator(
         onRefresh: _load,
-        color: AppColors.primaryBlue,
+        color: SC.red,
         child: CustomScrollView(
           slivers: [
             // Header
             SliverToBoxAdapter(
               child: Container(
-                decoration:
-                    const BoxDecoration(gradient: AppGradients.heroGradient),
+                color: SC.white,
                 padding: EdgeInsets.only(
                   top: MediaQuery.of(context).padding.top + 12,
                   left: 20,
@@ -207,65 +207,75 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   children: [
                     Row(
                       children: [
-                        IconButton(
-                          onPressed: () => context.pop(),
-                          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
-                          style: IconButton.styleFrom(
-                            backgroundColor: Colors.white.withOpacity(0.8),
-                            padding: const EdgeInsets.all(8),
+                        GestureDetector(
+                          onTap: () => context.pop(),
+                          child: Container(
+                            width: 38,
+                            height: 38,
+                            decoration: BoxDecoration(
+                              color: SC.redLight,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(Icons.arrow_back_ios_new,
+                                size: 16, color: SC.red),
                           ),
                         ),
                         const SizedBox(width: 12),
-                        const Text(
-                          'Products',
-                          style: TextStyle(
-                              fontSize: 22,
+                        Text(
+                          'Produk FOMI',
+                          style: GoogleFonts.poppins(
+                              fontSize: 18,
                               fontWeight: FontWeight.w800,
-                              color: AppColors.textPrimary),
+                              color: SC.textPrimary),
                         ),
                         const Spacer(),
                         GestureDetector(
                           onTap: () => context.push('/cart'),
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.8),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Consumer<CartProvider>(
-                              builder: (context, cart, _) => Stack(
-                                clipBehavior: Clip.none,
-                                children: [
-                                  const Icon(Icons.shopping_cart_outlined,
-                                      color: AppColors.primaryBlue, size: 22),
-                                  if (cart.count > 0)
-                                    Positioned(
-                                      right: -4,
-                                      top: -4,
-                                      child: Container(
-                                        width: 14,
-                                        height: 14,
-                                        decoration: const BoxDecoration(
-                                            color: Colors.red,
-                                            shape: BoxShape.circle),
-                                        child: Center(
-                                            child: Text('${cart.count}',
-                                                style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 8))),
-                                      ),
+                          child: Consumer<CartProvider>(
+                            builder: (_, cart, __) => Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: SC.redLight,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Icon(
+                                      Icons.shopping_cart_outlined,
+                                      color: SC.red,
+                                      size: 20),
+                                ),
+                                if (cart.count > 0)
+                                  Positioned(
+                                    right: -4,
+                                    top: -4,
+                                    child: Container(
+                                      width: 16,
+                                      height: 16,
+                                      decoration: const BoxDecoration(
+                                          color: SC.red,
+                                          shape: BoxShape.circle),
+                                      child: Center(
+                                          child: Text('${cart.count}',
+                                              style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 9,
+                                                  fontWeight:
+                                                      FontWeight.w800))),
                                     ),
-                                ],
-                              ),
+                                  ),
+                              ],
                             ),
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 4),
-                    const Text('Semua merchandise FOMI dalam satu tempat.',
-                        style: TextStyle(
-                            fontSize: 13, color: AppColors.textSecondary)),
+                    Text('Semua merchandise FOMI dalam satu tempat.',
+                        style: GoogleFonts.poppins(
+                            fontSize: 12, color: SC.textSecondary)),
                     const SizedBox(height: 16),
                     // Filter chips
                     SizedBox(
@@ -291,23 +301,18 @@ class _ProductListScreenState extends State<ProductListScreen> {
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 8),
+                                  horizontal: 14, vertical: 8),
                               decoration: BoxDecoration(
-                                color: isSelected
-                                    ? AppColors.primaryBlue
-                                    : Colors.white,
+                                color: isSelected ? SC.red : SC.white,
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
-                                  color: isSelected
-                                      ? AppColors.primaryBlue
-                                      : AppColors.skyBlue,
+                                  color: isSelected ? SC.red : SC.redSoft,
                                   width: 1.5,
                                 ),
                                 boxShadow: isSelected
                                     ? [
                                         BoxShadow(
-                                            color: AppColors.primaryBlue
-                                                .withOpacity(0.3),
+                                            color: SC.red.withOpacity(0.3),
                                             blurRadius: 8,
                                             offset: const Offset(0, 3))
                                       ]
@@ -315,12 +320,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
                               ),
                               child: Text(
                                 cat,
-                                style: TextStyle(
-                                  fontSize: 13,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
                                   fontWeight: FontWeight.w600,
-                                  color: isSelected
-                                      ? Colors.white
-                                      : AppColors.textSecondary,
+                                  color: isSelected ? Colors.white : SC.red,
                                 ),
                               ),
                             ),
@@ -386,30 +389,30 @@ class _ProductListScreenState extends State<ProductListScreen> {
       onTap: () => context.push('/shop/products/${product.id}'),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-                color: AppColors.lightBlue.withOpacity(0.25),
-                blurRadius: 10,
-                offset: const Offset(0, 4))
-          ],
+          color: SC.white,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: SC.cardShadow,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
               borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(20)),
-              child: product.imageUrl != null
-                  ? CachedNetworkImage(
-                      imageUrl: product.imageUrl!,
-                      height: 112,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      errorWidget: (_, __, ___) => _placeholder(),
-                    )
-                  : _placeholder(),
+                  const BorderRadius.vertical(top: Radius.circular(18)),
+              child: Stack(
+                children: [
+                  product.imageUrl != null
+                      ? CachedNetworkImage(
+                          imageUrl: product.imageUrl!,
+                          height: 112,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          errorWidget: (_, __, ___) => _placeholder(),
+                        )
+                      : _placeholder(),
+                  Positioned(top: 8, left: 8, child: ShopWidgets.fomiBadge()),
+                ],
+              ),
             ),
             Expanded(
               child: Padding(
@@ -419,94 +422,64 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 2),
+                          horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                          color: AppColors.softBlue,
-                          borderRadius: BorderRadius.circular(8)),
-                      child: Text(product.type.toUpperCase(),
-                          style: const TextStyle(
-                              fontSize: 9,
-                              color: AppColors.primaryBlue,
+                          color: product.type.toLowerCase() == 'digital'
+                              ? SC.successLight
+                              : const Color(0xFFF5F5F5),
+                          borderRadius: BorderRadius.circular(6)),
+                      child: Text(
+                          product.type.toLowerCase() == 'digital'
+                              ? 'DIGITAL'
+                              : 'FISIK',
+                          style: GoogleFonts.poppins(
+                              fontSize: 8,
+                              color: product.type.toLowerCase() == 'digital'
+                                  ? SC.success
+                                  : SC.textSecondary,
                               fontWeight: FontWeight.w700)),
                     ),
                     const SizedBox(height: 4),
                     Text(product.name,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: GoogleFonts.poppins(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary)),
+                            color: SC.textPrimary)),
                     if (product.description != null)
                       Text(product.description!,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                              fontSize: 11, color: AppColors.textSecondary)),
+                          style: GoogleFonts.poppins(
+                              fontSize: 11, color: SC.textSecondary)),
                     const Spacer(),
                     Text(_formatPrice(product.price),
-                        style: const TextStyle(
+                        style: GoogleFonts.poppins(
                             fontSize: 13,
                             fontWeight: FontWeight.w800,
-                            color: AppColors.primaryBlue)),
+                            color: SC.red)),
                     const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () =>
-                                context.push('/shop/products/${product.id}'),
-                            child: Container(
-                              height: 30,
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                    color: AppColors.primaryBlue, width: 1.5),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: const Center(
-                                child: FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Text(
-                                    'Detail',
-                                    style: TextStyle(
-                                        fontSize: 11,
-                                        color: AppColors.primaryBlue,
-                                        fontWeight: FontWeight.w600),
-                                  ),
-                                ),
-                              ),
-                            ),
+                    GestureDetector(
+                      onTap: () => _addOrGo(product),
+                      child: Container(
+                        height: 32,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          gradient: SC.redGradient,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: SC.redShadow,
+                        ),
+                        child: Center(
+                          child: Text(
+                            product.hasVariants ? 'Lihat' : 'Tambah',
+                            style: GoogleFonts.poppins(
+                                fontSize: 11,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700),
                           ),
                         ),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () => _addOrGo(product),
-                            child: Container(
-                              height: 30,
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(colors: [
-                                  AppColors.primaryBlue,
-                                  AppColors.midBlue
-                                ]),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Center(
-                                child: FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Text(
-                                    product.hasVariants ? 'Pilih' : 'Tambah',
-                                    style: const TextStyle(
-                                        fontSize: 11,
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ],
                 ),
@@ -521,9 +494,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
   Widget _placeholder() => Container(
         height: 112,
         width: double.infinity,
-        color: AppColors.softBlue,
-        child: const Icon(Icons.image_outlined,
-            size: 40, color: AppColors.primaryBlue),
+        color: SC.redLight,
+        child: const Icon(Icons.qr_code_2_rounded, size: 40, color: SC.red),
       );
 
   void _addOrGo(ShopProduct product) {
@@ -548,7 +520,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(ok ? '${product.name} ditambahkan!' : 'Stok habis!'),
-            backgroundColor: ok ? AppColors.success : Colors.red,
+            backgroundColor: ok ? SC.red : Colors.grey,
             duration: const Duration(seconds: 2),
             behavior: SnackBarBehavior.floating,
             shape:
@@ -559,5 +531,3 @@ class _ProductListScreenState extends State<ProductListScreen> {
     });
   }
 }
-
-

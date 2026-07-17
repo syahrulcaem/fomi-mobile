@@ -1,9 +1,9 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
 
-import '../../core/app_theme.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../models/paginated_response.dart';
 import '../../models/qrcode_model.dart';
 import '../../services/merchandise_service.dart';
@@ -242,11 +242,11 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
                                     child: Container(
                                       height: 2,
                                       decoration: BoxDecoration(
-                                        color: AppColors.primaryBlue,
+                                        color: Color(0xFFD32F2F),
                                         borderRadius: BorderRadius.circular(2),
                                         boxShadow: [
                                           BoxShadow(
-                                              color: AppColors.primaryBlue
+                                              color: Color(0xFFD32F2F)
                                                   .withOpacity(0.5),
                                               blurRadius: 6),
                                         ],
@@ -283,7 +283,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
   List<Widget> _corners() {
     const size = 24.0;
     const thick = 3.0;
-    const color = AppColors.primaryBlue;
+    const color = Color(0xFFD32F2F);
 
     Widget corner(Alignment a) {
       return Positioned(
@@ -327,10 +327,10 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bgBlue,
+      backgroundColor: Color(0xFFF5F5F5),
       body: RefreshIndicator(
         onRefresh: () => _loadItems(),
-        color: AppColors.primaryBlue,
+        color: Color(0xFFD32F2F),
         child: CustomScrollView(
           slivers: [
             // Header
@@ -342,51 +342,55 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
             // Koleksi header
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 28, 20, 12),
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        const Text('Koleksiku ',
-                            style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.textPrimary)),
-                        const SizedBox(width: 8),
-                        OutlinedButton.icon(
-                          onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute<void>(
-                                builder: (_) => const AllChatSessionsScreen(),
-                              ),
-                            );
-                          },
-                          icon: const Icon(Icons.forum_outlined, size: 16),
-                          label: const Text('Semua Sesi'),
-                          style: OutlinedButton.styleFrom(
-                            visualDensity: VisualDensity.compact,
-                            minimumSize: const Size(10, 34),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 6,
-                            ),
+                    Row(children: [
+                      Text('Koleksiku',
+                          style: GoogleFonts.poppins(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF1A1A1A))),
+                      const SizedBox(width: 10),
+                      GestureDetector(
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const AllChatSessionsScreen(),
                           ),
                         ),
-                      ],
-                    ),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Color(0xFFFFEBEE),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(mainAxisSize: MainAxisSize.min, children: [
+                            const Icon(Icons.forum_rounded,
+                                size: 13, color: Color(0xFFD32F2F)),
+                            const SizedBox(width: 4),
+                            Text('Semua Sesi',
+                                style: GoogleFonts.poppins(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFFD32F2F))),
+                          ]),
+                        ),
+                      ),
+                    ]),
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: AppColors.softBlue,
+                        color: Color(0xFFFFEBEE),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
                         '${_items.total} item',
-                        style: const TextStyle(
+                        style: GoogleFonts.poppins(
                             fontSize: 12,
-                            color: AppColors.primaryBlue,
+                            color: Color(0xFFD32F2F),
                             fontWeight: FontWeight.w600),
                       ),
                     ),
@@ -442,45 +446,46 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
 
   Widget _buildHeader() {
     return Container(
-      decoration: const BoxDecoration(gradient: AppGradients.heroGradient),
+      color: Colors.white,
       padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 16,
-        left: 20,
-        right: 20,
-        bottom: 24,
+        top: MediaQuery.of(context).padding.top + 12,
+        left: 20, right: 20, bottom: 16,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryBlue,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Center(
-                  child: Text('F',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 20)),
-                ),
+          Container(
+            width: 40, height: 40,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFB71C1C), Color(0xFFD32F2F)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              const SizedBox(width: 8),
-              const Text('Scan Merchandise',
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Center(
+              child: Text('F',
                   style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 18,
-                      color: AppColors.darkBlue)),
-            ],
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 22)),
+            ),
           ),
-          const SizedBox(height: 12),
-          const Text(
-            'Daftarkan merchandise FOMI dan kelola koleksimu.',
-            style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Scan Merchandise',
+                    style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 16,
+                        color: Color(0xFF1A1A1A))),
+                Text('Daftarkan dan kelola koleksi FOMI-mu.',
+                    style: GoogleFonts.poppins(
+                        fontSize: 11, color: Color(0xFF757575))),
+              ],
+            ),
           ),
         ],
       ),
@@ -489,14 +494,14 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
 
   Widget _buildScanCard() {
     return Container(
-      margin: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+      margin: const EdgeInsets.fromLTRB(20, 16, 20, 0),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryBlue.withOpacity(0.12),
+            color: Color(0xFFD32F2F).withOpacity(0.08),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -513,14 +518,14 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
               height: 120,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [AppColors.primaryBlue, AppColors.midBlue],
+                  colors: [Color(0xFFB71C1C), Color(0xFFD32F2F)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primaryBlue.withOpacity(0.3),
+                    color: Color(0xFFD32F2F).withOpacity(0.3),
                     blurRadius: 12,
                     offset: const Offset(0, 6),
                   ),
@@ -560,7 +565,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Text('atau ketik manual',
                   style: TextStyle(
-                      color: AppColors.textSecondary.withOpacity(0.7),
+                      color: Color(0xFF757575).withOpacity(0.7),
                       fontSize: 12)),
             ),
             const Expanded(child: Divider()),
@@ -576,23 +581,23 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
                   decoration: InputDecoration(
                     hintText: 'Masukkan kode barcode...',
                     prefixIcon: const Icon(Icons.confirmation_number_outlined,
-                        size: 20, color: AppColors.primaryBlue),
+                        size: 20, color: Color(0xFFD32F2F)),
                     contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 12),
                     filled: true,
-                    fillColor: AppColors.bgBlue,
+                    fillColor: Color(0xFFF5F5F5),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
-                      borderSide: const BorderSide(color: AppColors.skyBlue),
+                      borderSide: const BorderSide(color: Color(0xFFFFCDD2)),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
-                      borderSide: const BorderSide(color: AppColors.skyBlue),
+                      borderSide: const BorderSide(color: Color(0xFFFFCDD2)),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
                       borderSide: const BorderSide(
-                          color: AppColors.primaryBlue, width: 2),
+                          color: Color(0xFFD32F2F), width: 2),
                     ),
                   ),
                 ),
@@ -604,7 +609,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: AppColors.primaryBlue,
+                    color: Color(0xFFD32F2F),
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: _verifying
@@ -631,11 +636,11 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: r.success
-            ? AppColors.success.withOpacity(0.08)
+            ? Color(0xFF2E7D32).withOpacity(0.08)
             : Colors.red.shade50,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: r.success ? AppColors.success : Colors.red.shade300,
+          color: r.success ? Color(0xFF2E7D32) : Colors.red.shade300,
           width: 1.5,
         ),
       ),
@@ -645,7 +650,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: r.success ? AppColors.success : Colors.red,
+              color: r.success ? Color(0xFF2E7D32) : Colors.red,
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -664,19 +669,19 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: r.success ? AppColors.success : Colors.red,
+                    color: r.success ? Color(0xFF2E7D32) : Colors.red,
                   ),
                 ),
                 Text(r.message,
                     style: const TextStyle(
-                        fontSize: 12, color: AppColors.textSecondary)),
+                        fontSize: 12, color: Color(0xFF757575))),
               ],
             ),
           ),
           GestureDetector(
             onTap: () => setState(() => _result = null),
             child: const Icon(Icons.close,
-                size: 18, color: AppColors.textSecondary),
+                size: 18, color: Color(0xFF757575)),
           ),
         ],
       ),
@@ -685,7 +690,6 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
 
   Widget _buildItemCard(QrCodeModel item) {
     final isLost = item.isLost;
-
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
@@ -694,112 +698,158 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.lightBlue.withOpacity(0.2),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8, offset: const Offset(0, 3),
           ),
         ],
       ),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: isLost ? Colors.red.shade50 : AppColors.softBlue,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              Icons.qr_code_2,
-              color: isLost ? Colors.red : AppColors.primaryBlue,
-              size: 24,
-            ),
+      child: Row(children: [
+        Container(
+          width: 48, height: 48,
+          decoration: BoxDecoration(
+            color: isLost
+                ? Colors.red.shade50
+                : Color(0xFFFFEBEE),
+            borderRadius: BorderRadius.circular(12),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(item.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary)),
-                const SizedBox(height: 2),
-                Text('Kode: ${item.code ?? '-'}',
-                    style: const TextStyle(
-                        fontSize: 11, color: AppColors.textSecondary)),
-                const SizedBox(height: 8),
-                OutlinedButton.icon(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => OwnerChatScreen(
-                          assetId: item.routeAssetId,
-                          assetName: item.name,
-                        ),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.chat_bubble_outline, size: 16),
-                  label: const Text('Chat Anonim'),
-                  style: OutlinedButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
-                    minimumSize: const Size(10, 34),
+          child: Icon(
+            Icons.qr_code_2_rounded,
+            color: isLost ? Colors.red : Color(0xFFD32F2F),
+            size: 24,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(item.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1A1A1A))),
+              const SizedBox(height: 2),
+              Text('Kode: ${item.code ?? '-'}',
+                  style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      color: Color(0xFF757575))),
+              const SizedBox(height: 8),
+              GestureDetector(
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => OwnerChatScreen(
+                      assetId: item.routeAssetId,
+                      assetName: item.name,
+                    ),
                   ),
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: isLost
-                  ? Colors.red.shade50
-                  : AppColors.success.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              isLost ? 'Hilang' : (item.status ?? 'Normal'),
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: isLost ? Colors.red : AppColors.success,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Color(0xFFFFEBEE),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    const Icon(Icons.chat_bubble_outline_rounded,
+                        size: 13, color: Color(0xFFD32F2F)),
+                    const SizedBox(width: 5),
+                    Text('Chat Anonim',
+                        style: GoogleFonts.poppins(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFFD32F2F))),
+                  ]),
+                ),
               ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: isLost
+                ? Colors.red.shade50
+                : Color(0xFF2E7D32).withOpacity(0.1),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            isLost ? 'Hilang' : (item.status ?? 'Normal'),
+            style: GoogleFonts.poppins(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: isLost ? Colors.red : Color(0xFF2E7D32),
             ),
           ),
-        ],
-      ),
+        ),
+      ]),
     );
   }
 
   Widget _buildPagination() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
       child: Row(children: [
         Expanded(
-          child: OutlinedButton(
-            onPressed: _page > 1 && !_loadingItems
+          child: GestureDetector(
+            onTap: _page > 1 && !_loadingItems
                 ? () => _loadItems(page: _page - 1)
                 : null,
-            child: const Text('< Sebelumnya'),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                color: _page > 1 ? Color(0xFFFFEBEE) : Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Center(
+                child: Text('← Sebelumnya',
+                    style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: _page > 1
+                            ? Color(0xFFD32F2F)
+                            : Colors.grey)),
+              ),
+            ),
           ),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 14),
           child: Text('${_items.currentPage}/${_items.lastPage}',
-              style: const TextStyle(
-                  fontWeight: FontWeight.w600, color: AppColors.primaryBlue)),
+              style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 13,
+                  color: Color(0xFFD32F2F))),
         ),
         Expanded(
-          child: ElevatedButton(
-            onPressed: _items.hasMore && !_loadingItems
+          child: GestureDetector(
+            onTap: _items.hasMore && !_loadingItems
                 ? () => _loadItems(page: _page + 1)
                 : null,
-            child: const Text('Berikutnya'),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                gradient: _items.hasMore
+                    ? const LinearGradient(
+                        colors: [Color(0xFFB71C1C), Color(0xFFD32F2F)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      )
+                    : null,
+                color: _items.hasMore ? null : Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Center(
+                child: Text('Berikutnya →',
+                    style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: _items.hasMore ? Colors.white : Colors.grey)),
+              ),
+            ),
           ),
         ),
       ]),

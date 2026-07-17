@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -11,6 +11,7 @@ import 'providers/auth_provider.dart';
 import 'providers/cart_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
+import 'screens/scan/all_chat_sessions_screen.dart';
 import 'screens/dashboard/dashboard_screen.dart';
 import 'screens/merchandise/merchandise_screen.dart';
 import 'screens/orders/order_detail_screen.dart';
@@ -20,7 +21,6 @@ import 'screens/qr/edit_qrcode_screen.dart';
 import 'screens/qr/qrcode_detail_screen.dart';
 import 'screens/qr/qrcode_list_screen.dart';
 import 'screens/renewal/midtrans_payment_screen.dart';
-import 'screens/renewal/renewal_screen.dart';
 import 'screens/shop/shop_home_screen.dart';
 import 'screens/shop/product_list_screen.dart';
 import 'screens/shop/product_detail_screen.dart';
@@ -154,29 +154,16 @@ class _AppRouter extends StatelessWidget {
                 ),
               ],
             ),
-            // Branch 2: Scan & QR Codes
+            // Branch 2: Chat
             StatefulShellBranch(
               routes: [
                 GoRoute(
-                  path: '/scan',
-                  builder: (_, __) => const ScanScreen(),
-                ),
-                GoRoute(
-                  path: '/qrcodes',
-                  builder: (_, __) => const QrCodeListScreen(),
+                  path: '/chat',
+                  builder: (_, __) => const AllChatSessionsScreen(),
                 ),
               ],
             ),
-            // Branch 3: Orders
-            StatefulShellBranch(
-              routes: [
-                GoRoute(
-                  path: '/orders',
-                  builder: (_, __) => const OrderListScreen(),
-                ),
-              ],
-            ),
-            // Branch 4: Profile
+            // Branch 3: Profile
             StatefulShellBranch(
               routes: [
                 GoRoute(
@@ -189,6 +176,14 @@ class _AppRouter extends StatelessWidget {
         ),
 
         // --- Other Top-Level Routes (No Bottom Nav) ---
+        GoRoute(
+          path: '/scan',
+          builder: (_, __) => const ScanScreen(),
+        ),
+        GoRoute(
+          path: '/qrcodes',
+          builder: (_, __) => const QrCodeListScreen(),
+        ),
         // Shop Details
         GoRoute(
           path: '/shop/products',
@@ -236,6 +231,9 @@ class _AppRouter extends StatelessWidget {
               EditQrCodeScreen(assetId: state.pathParameters['id'] ?? ''),
         ),
 
+        // Orders
+        GoRoute(path: '/orders', builder: (_, __) => const OrderListScreen()),
+
         // Order Details
         GoRoute(
           path: '/orders/:id',
@@ -243,8 +241,7 @@ class _AppRouter extends StatelessWidget {
               OrderDetailScreen(orderId: state.pathParameters['id'] ?? ''),
         ),
 
-        // Renewal
-        GoRoute(path: '/renewal', builder: (_, __) => const RenewalScreen()),
+        // Renewal Payment (keep the payment route)
         GoRoute(
           path: '/renewal/payment',
           builder: (_, state) => MidtransPaymentScreen(
@@ -273,15 +270,13 @@ class _SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(gradient: AppGradients.heroGradient),
-        child: Center(
-          child: Image.asset(
-            'assets/icon/icon.png',
-            width: 180,
-            height: 180,
-            fit: BoxFit.contain,
-          ),
+      backgroundColor: const Color(0xFFFFEBEE),
+      body: Center(
+        child: Image.asset(
+          'assets/icon/icon.png',
+          width: 180,
+          height: 180,
+          fit: BoxFit.contain,
         ),
       ),
     );
